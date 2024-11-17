@@ -72,6 +72,7 @@ namespace Box2dNet.Samples
                     // use helper extension method to efficiently read the native hitEvents array with little code:
                     foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTouchEvent>(hitEvents.beginCount))
                     {
+                        // here, we now can find our .NET Ball back because it was stored onto the B2Shape.UserData
                         var ball1 = NativeHandle<Ball>.GetObjectFromIntPtr(B2Api.b2Shape_GetUserData(@event.shapeIdA));
                         var ball2 = NativeHandle<Ball>.GetObjectFromIntPtr(B2Api.b2Shape_GetUserData(@event.shapeIdB));
 
