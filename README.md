@@ -80,8 +80,9 @@ The generator gives several warnings about the "exclude-list", which is ok.
 
 If you get other warnings or errors, though, some of the new C code is incompatible with my tool. You can let me know, and I will try to fix them.
 
-History:
+# History:
 
-* 16/11/2024 built from Box2D commit a9f2c92f7af8f5a8e2c9b371044e15c1f8959c45
-* 1/11/2024 built from Box2D commit 87e13e44378afc42598a4f7e8b2d5289982cdda7
-* 1/10/2024 built from Box2D commit df7373c08a41b7a4ba6edd5d4be200675a948176
+* 17/11/2024: replaced .NET parallel impl because of issue with previous impl.
+* 16/11/2024: regen for Box2D commit a9f2c92f7af8f5a8e2c9b371044e15c1f8959c45
+* 1/11/2024: regen for Box2D commit 87e13e44378afc42598a4f7e8b2d5289982cdda7
+* 1/10/2024: initial version, generated for Box2D commit df7373c08a41b7a4ba6edd5d4be200675a948176
