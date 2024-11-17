@@ -18,7 +18,7 @@ namespace Box2dNet.Samples
                 AddBall(b2WorldId, new(2, 0), new(0, 0));
 
                 // simulate world and detect collisions:
-                for (var i = 0; i < 100; i++)
+                for (var i = 0; i < 40; i++)
                 {
                     B2Api.b2World_Step(b2WorldId, 1 / 60f, 4);
 

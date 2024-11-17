@@ -149,14 +149,31 @@ public static partial class B2Api
                         if (field.IsFixedArray)
                         {
                             var cte = constants.Find(c => c.Identifier == field.ArrayLength);
-                            var arrayLength = cte == null ? field.ArrayLength : "B2Api." + cte.Identifier;
-                            sbI.AppendLine($"  [MarshalAs(UnmanagedType.ByValArray, SizeConst = {arrayLength})]");
-                        }
 
-                        if (field.Type == "bool")
-                            sbI.AppendLine("  [MarshalAs(UnmanagedType.U1)]"); // else .NET marshals as 32 bit, very fun to narrow down on that one.
-                        var arrayPart = field.IsFixedArray ? "[]" : "";
-                        sbI.AppendLine($"  public {MapType(field.Type, false, true)}{arrayPart} {field.Identifier};");
+                            // this Marshal ByValArray thing doesn't seem to work. Get memory access issues at runtime ...
+                            // var arrayLength = cte == null ? field.ArrayLength : "B2Api." + cte.Identifier;
+                            // sbI.AppendLine($"  [MarshalAs(UnmanagedType.ByValArray, SizeConst = {arrayLength})]");
+
+                            // ... so we just repeat the fields to mimic the inline array, and add a helper method to get them by index:
+                            var arrayLength = int.Parse(cte == null ? field.ArrayLength : cte.Value);
+                            var switchCases = new List<string>();
+                            var clrType = MapType(field.Type, false, true);
+                            for (var i = 0; i < arrayLength; i++)
+                            {
+                                sbI.AppendLine($"  public {clrType} {field.Identifier}{i};");
+                                switchCases.Add($"      {i} => {field.Identifier}{i},\r\n");
+                            }
+                            sbI.AppendLine($"  /// <summary>.NET helper to get the inline {field.Identifier} by index. </summary>");
+                            sbI.AppendLine($"  public {clrType} {field.Identifier}(int idx)\r\n  {{\r\n    return idx switch\r\n    {{");
+                            sbI.Append(string.Join("", switchCases));
+                            sbI.AppendLine($"      _ => throw new ArgumentOutOfRangeException(nameof(idx), \"There are only {arrayLength} {field.Identifier}.\")\r\n    }};\r\n  }}");
+                        }
+                        else
+                        {
+                            if (field.Type == "bool")
+                                sbI.AppendLine("  [MarshalAs(UnmanagedType.U1)]"); // else .NET marshals as 32 bit, very fun to narrow down on that one.
+                            sbI.AppendLine($"  public {MapType(field.Type, false, true)} {field.Identifier};");
+                        }
                     }
 
                     sbI.AppendLine("}");
