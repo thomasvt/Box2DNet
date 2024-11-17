@@ -1,10 +1,14 @@
 # Description
 
-This is a .NET 8.0 PInvoke wrapper for **Box2d v3.x** for .NET games that have their own engine. The wrapper is generated using a homebrewn codegen tool that parses the Box2D C code and generates the C# wrapper.
+This is a .NET 8.0 PInvoke wrapper for **Box2d v3.x** for .NET games that have their own engine. The wrapper is generated using a homebrew tool that parses the Box2D C code and generates the C# wrapper.
 
-The codegen also brings in the C comments, so code completion is quite rich (thank Erin for the quality doc). You may also *goto definition* because there is more comment than what code completion picks up.
+The tool also brings in the C comments, so code completion is quite rich (thank Erin for the quality doc). You may also *goto definition* because there is more comment than what code completion picks up.
 
 Next to the codegen output, I added a few reusable helpers like wiring the new multithreading support of Box2d to .NET Task Parallel Library.
+
+## License
+
+I don't know much about licenses, but you may do whatever you like with the code in this repo. Don't forget to check the Box2D repo's license, though, as you're using dlls made by them.
 
 ## DISCLAIMER
 
