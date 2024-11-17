@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Box2dWrap": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\repos\\box2d \"C:\\repos\\Box2dNet\\Box2dNet\\Interop\\B2Api.cs\""
+    }
+  }
+}
