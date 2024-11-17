@@ -9,7 +9,8 @@
                 new CircleShapeSample(),
                 new PolygonShapeSample(),
                 new MultiThreadedSample(),
-                new HitEventsSample()
+                new HitEventsSample(),
+                new TrackGameObjectWithUserDataSample()
             };
 
             while (true)

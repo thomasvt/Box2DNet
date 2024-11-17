@@ -30,7 +30,7 @@ namespace Box2dNet.Samples
                     // use helper extension method to efficiently read the native hitEvents array with little code:
                     foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTouchEvent>(hitEvents.beginCount))
                     {
-                        Console.WriteLine($"HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
+                        Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
                     }
                 }
             }
