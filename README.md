@@ -66,21 +66,22 @@ Example:
 
 ## Building the Box2D DLLs
 
-Steps to rebuild Box2D dlls (from the ```erincatto/box2d``` code):
+Steps to rebuild Box2D dlls:
 
-* get latest version
-* in CMakeLists.txt around line 11 add a line ```option(BUILD_SHARED_LIBS "Build using shared libraries" ON)``` which makes it build to dll instead of statically linked lib
+* clone latest version of ```erincatto/box2d``` onto your PC
+* in ```CMakeLists.txt``` around line 11 add a line ```option(BUILD_SHARED_LIBS "Build using shared libraries" ON)``` which makes it build to dll instead of statically linked lib
 * run ```build.cmd``` -> generates a .sln in ```./build```
 * if it did not open automatically, open the generated ```./build/box2d.sln``` in Visual Studio
 * Rebuild the ```box2d``` project both in Debug and Release to get both .dlls ```box2dd.dll``` and ```box2d.dll```. (don't build the entire sln, it gives errors in the non-static build, atm)
-* copy the 2 dlls to the Box2dNet project and set to copy on build (currently I use the csproj directly in my game's .sln)
-* rerun Box2DWrap to regenerate B2Api C# code with ```./Interop/B2Api.cs``` in the Box2dNet project as output.
+* copy the 2 dlls from ```.\build\bin\Debug``` and ```.\build\bin\Release``` to the Box2dNet project and set to copy on build (currently I use the csproj directly in my game's .sln)
+* rerun ```Box2DWrap``` to also regenerate the latests Box2d into the Box2dNet project file ```./Interop/B2Api.cs```.
 
-The generator gives several  warnings about things on the "exclude-list", which is because I deliberately exclude a few things (see the NOT included list above). 
-If you get other warnings or errors, though, some new changes in the C code are incompatible with my tool. You can let me know, and I will try to fix them.
+The generator gives several warnings about the "exclude-list", which is ok.
+
+If you get other warnings or errors, though, some of the new C code is incompatible with my tool. You can let me know, and I will try to fix them.
 
 History:
 
-16/11/2024 built from Box2D commit a9f2c92f7af8f5a8e2c9b371044e15c1f8959c45
-1/11/2024 built from Box2D commit 87e13e44378afc42598a4f7e8b2d5289982cdda7
-1/10/2024 built from Box2D commit df7373c08a41b7a4ba6edd5d4be200675a948176
+* 16/11/2024 built from Box2D commit a9f2c92f7af8f5a8e2c9b371044e15c1f8959c45
+* 1/11/2024 built from Box2D commit 87e13e44378afc42598a4f7e8b2d5289982cdda7
+* 1/10/2024 built from Box2D commit df7373c08a41b7a4ba6edd5d4be200675a948176
