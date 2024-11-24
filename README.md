@@ -26,7 +26,7 @@ There's no nuget package. Just clone ```Box2DNet``` next to your game folder and
 
 This will build the Box2DNet project along with your game. When you build in DEBUG it will use native ```box2dd.dll```, when you build in RELEASE it will use native ```box2d.dll```.
 
-> The debug version ```box2dd.dll``` will quit your game when you did something wrong: this helps for debugging your programming mistakes.
+> The debug version ```box2dd.dll``` will quit your game with an error message when you did something wrong: this helps for debugging your programming mistakes.
 
 ### The Box2D API
 
