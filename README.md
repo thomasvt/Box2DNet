@@ -65,7 +65,7 @@ foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTou
 If the IntPtr is for passing a game object into Box2D, like ```userData```, you can create a ```NativeHandle``` for your game object to get an IntPtr for it that you can pass to the native Box2D side:
 
 ``` C#
-_handle = new NativeHandle<Ball>(this); // create a handle for the .NET object.
+_handle = new NativeHandle<Ball>(ball); // create a handle for the .NET object.
 
 var shapeDef = B2Api.b2DefaultShapeDef();
 // now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
