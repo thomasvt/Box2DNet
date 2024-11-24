@@ -2,34 +2,35 @@
 
 ## Description
 
-This is a .NET 8.0 PInvoke wrapper for **Box2d v3.x** for .NET games that have their own engine. The wrapper is generated using a homebrew tool that parses the Box2D C code and generates the C# wrapper.
+This is a .NET 8.0 PInvoke wrapper for [Box2d v3.x](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
 
-The tool also brings in the C comments, so code completion is quite rich (thank Erin for the quality doc). You may also *goto definition* because there is more comment than what code completion picks up.
+A custom tool parses the Box2D C code and generates the C# wrapper code.
 
-Next to the codegen output, I added a few reusable helpers like wiring the new multithreading support of Box2d to .NET Task Parallel Library.
+Next to the generated wrapper, a few reusable helpers are manually added to ease working with native pointers and wiring the new multithreading support of Box2d to .NET Task Parallel Library.
 
-## License
+> This is not a rigorously tested wrapper project. I'm doing this for my own game but it turned out pretty complete, so I'm sharing it.
 
-I don't know much about licenses, but you may do whatever you like with the code in this repo. Don't forget to check the Box2D repo's license, though, as you're using dlls made by them.
+> This may not work in Unity, especially the .NET Task wrapping, it's meant for stand-alone use in .NET code, for instance with Monogame.
 
-## DISCLAIMER
+### License
 
-> This wrapper is very young and largely untested. I'm doing this for my own Monogame game but it turned out pretty well, so I'm sharing it. But there may come breaking changes when i fix bugs or find better ways of doing things, especially in the C# helper code.
+You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-> This will probably not work in Unity, it's meant for stand-alone use in .NET code.
+## Manual
 
-## Naming conventions
+Box2DNet uses no abstraction layer: you work with functions and types directly wrapping the original C constructs with the **exact same** identifier. So you can use the original [Box2d manual](https://box2d.org/documentation/) 'as is'.
 
-I don't like wrappers that need their own manual, so Box2DNet uses the exact same naming and types as the C original. The Box2D manual is therefore 99% applicable to Box2dNet too. 
+### Include Box2DNet in your game
 
-All Box2D API functions (marked ```B2API``` in the C code) map to C# methods with the same name in static class ```Box2dNet.Interop.B2Api```. So, B2Api is the place to be. 
-Some .NET helper-code is in the other files as partial classes and extention methods.
+There's no nuget package. Just clone ```Box2DNet``` next to your game folder and include the ```.csproj``` into your game solution.
 
-## What's included?
+This will build the Box2DNet project along with your game. When you build in DEBUG it will use native ```box2dd.dll```, when you build in RELEASE it will use native ```box2d.dll```.
 
-### B2API Functions
+> The debug version ```box2dd.dll``` will quit your game when you did something wrong: this helps for debugging your programming mistakes.
 
-Most of the ```B2API``` marked functions are there, along with the types they require. 
+### The Box2D API
+
+All Box2D functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 
 NOT included:
 
@@ -37,17 +38,59 @@ NOT included:
 * b2World_Draw and b2DefaultDebugDraw: temporary, due to translation difficulties. I intend to manually port this code, as it will probably not change much in the future.
 * b2DynamicTree_X: these were hard to wrap automatically. But most games don't need to use this directly, I think.
 
+### Dealing with IntPtr
+
+C pointers become ```IntPtr``` in C#, so you cannot see what struct they point to. To help with this, the original struct name is added in comment in the generated C# code:
+
+Example:
+
+``` C#
+/// <summary>
+/// Array of sensor begin touch events
+/// </summary>
+public IntPtr /* b2SensorBeginTouchEvent* */ beginEvents;
+```
+
+If the IntPtr is an array, like in the example, you can use C# extension method ```NativeArrayAsSpan``` to loop over the contents:
+
+``` C#
+var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
+// use helper extension method to efficiently read the native hitEvents array with little code:
+foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTouchEvent>(hitEvents.beginCount))
+{
+    Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
+}
+```
+
+If the IntPtr is for passing a game object into Box2D, like ```userData```, you can create a ```NativeHandle``` for your game object to get an IntPtr for it that you can pass to the native Box2D side:
+
+``` C#
+_handle = new NativeHandle<Ball>(this); // create a handle for the .NET object.
+
+var shapeDef = B2Api.b2DefaultShapeDef();
+// now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
+shapeDef.userData = _handle.IntPtr;
+```
+
+After this, you can get the .NET game object back from the IntPtr, eg. when getting hit events from Box2D:
+
+``` C#
+var ball = NativeHandle<Ball>.GetObjectFromIntPtr(B2Api.b2Shape_GetUserData(@event.shapeIdA));
+```
+
+> Don't forget to ```Dispose``` the NativeHandle instance (```_handle``` in the example) when you remove the game object from your game!
+
 ### Multi-threading support
 
-There is .NET TPL wiring code for the new multi-threaded Task system that Box2D uses. See ```B2Api.b2DefaultWorldDef_WithDotNetTpl()``` or the example on parallellism.
+There is .NET TPL wiring code for the new multi-threaded Task system that Box2D uses. Just use ```B2Api.b2DefaultWorldDef_WithDotNetTpl()``` instead of ```B2Api.b2DefaultWorldDef``` to create your Box2D world:
 
-## Usage
+``` C#
+var worldDef = useMultiThreading
+    ? B2Api.b2DefaultWorldDef_WithDotNetTpl() // <---- this is all it takes for default multi threading
+    : B2Api.b2DefaultWorldDef();
 
-### Include the project in your game
-
-There's no nuget package. Just copy the ```Box2DNet``` project into your game solution, or refer to the csproj.
-
-> When you build the ```Box2DNet``` project along with your game in DEBUG it will use the debug ```box2dd.dll``` which will quit your game when a C assertion fails: this helps for debugging. Build your game in RELEASE to use the ```box2d.dll``` production version.
+var b2WorldId = B2Api.b2CreateWorld(worldDef);
+```
 
 ### Samples
 
