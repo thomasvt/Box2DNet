@@ -1,49 +1,49 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Box2dNet.Interop
 {
-    public static partial class B2Api
+    /// <summary>
+    /// Used with b2World_CastRayClosest_DotNet.
+    /// </summary>
+
+    public class CastRayClosestFilter
     {
-        /// <summary>
-        /// Used with b2World_CastRayClosest_DotNet.
-        /// </summary>
-        public class CastRayClosestFilter
+        public b2QueryFilter QueryFilter { get; }
+        public Func<b2ShapeId, bool> Predicate { get; }
+
+        internal b2ShapeId ShapeId = default;
+        internal float Fraction = default;
+        internal bool Hit = false;
+        internal Vector2 Point = default;
+        internal Vector2 Normal = default;
+
+        public CastRayClosestFilter(b2QueryFilter queryFilter, Func<b2ShapeId, bool> predicate)
         {
-            public b2QueryFilter QueryFilter { get; }
-            public Func<b2ShapeId, bool> Predicate { get; }
-
-            internal b2ShapeId? ShapeId = default;
-            internal float Fraction = default;
-            internal bool Hit = false;
-            internal Vector2 Point = default;
-            internal Vector2 Normal = default;
-
-            public CastRayClosestFilter(b2QueryFilter queryFilter, Func<b2ShapeId, bool> predicate)
-            {
-                QueryFilter = queryFilter;
-                Predicate = predicate;
-            }
-
-            public float CastCallback(b2ShapeId shapeId, Vector2 point, Vector2 normal, float fraction, IntPtr /* void* */ context)
-            {
-                if (!Predicate(shapeId)) 
-                    return -1; // ignore this hit
-
-                // because we return 'fraction' we only get called here for an even closer hit than we already had.
-
-                // So, store the info about the latest closest hit:
-                ShapeId = shapeId; // (over)write the closest shape yet.
-                Hit = true;
-                Fraction = fraction;
-                Point = point;
-                Normal = normal;
-
-                return fraction; // only callback again for an even closer shape
-            }
+            QueryFilter = queryFilter;
+            Predicate = predicate;
         }
 
+        public float CastCallback(b2ShapeId shapeId, Vector2 point, Vector2 normal, float fraction, IntPtr /* void* */ context)
+        {
+            if (!Predicate(shapeId))
+                return -1; // ignore this hit
+
+            // because we return 'fraction' we only get called here for an even closer hit than we already had.
+
+            // So, store the info about the latest closest hit:
+            ShapeId = shapeId; // (over)write the closest shape yet.
+            Hit = true;
+            Fraction = fraction;
+            Point = point;
+            Normal = normal;
+
+            return fraction; // only callback again for an even closer shape
+        }
+    }
+
+    public static partial class B2Api
+    {
         /// <summary> 
         /// .NET extension method similar to b2World_CastRayClosest but with custom filtering.
         /// </summary>
@@ -66,7 +66,8 @@ namespace Box2dNet.Interop
                 fraction = filter.Fraction,
                 hit = filter.Hit,
                 point = filter.Point,
-                normal = filter.Normal
+                normal = filter.Normal,
+                shapeId = filter.ShapeId
             };
         }
 
