@@ -12,11 +12,11 @@ namespace Box2dNet.Interop
         public b2QueryFilter QueryFilter { get; }
         public Func<b2ShapeId, bool> Predicate { get; }
 
-        internal b2ShapeId ShapeId = default;
-        internal float Fraction = default;
-        internal bool Hit = false;
-        internal Vector2 Point = default;
-        internal Vector2 Normal = default;
+        internal b2ShapeId ShapeId;
+        internal float Fraction;
+        internal bool Hit;
+        internal Vector2 Point;
+        internal Vector2 Normal;
 
         public CastRayClosestFilter(b2QueryFilter queryFilter, Func<b2ShapeId, bool> predicate)
         {
