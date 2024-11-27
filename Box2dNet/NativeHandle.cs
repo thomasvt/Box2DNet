@@ -3,7 +3,7 @@
 namespace Box2dNet;
 
 /// <summary>
-/// Wraps a managed object into a GCHandle so you can pass it as an IntPtr to native code and back. Dispose it when the roundtripping for the object is no longer needed.
+/// Wraps a managed object along with a GCHandle so you can pass it as an IntPtr to native code and back. Dispose it when the roundtripping for the object is no longer needed.
 /// </summary>
 public class NativeHandle<T> : IDisposable
 {
