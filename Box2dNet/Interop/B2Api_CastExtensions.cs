@@ -56,21 +56,26 @@ namespace Box2dNet.Interop
             filter.Point = default;
             filter.Normal = default;
 
-            using var contextHandle = new NativeHandle<CastRayClosestFilter>(filter);
-            var callbackIntPtr = Marshal.GetFunctionPointerForDelegate((b2CastResultFcn)filter.CastCallback);
-            var stats = b2World_CastRay(worldId, origin, translation, filter.QueryFilter, callbackIntPtr, contextHandle.IntPtr);
-            return new b2RayResult
+            var contextPtr = NativeHandle.Alloc(filter);
+            try
             {
-                leafVisits = stats.leafVisits,
-                nodeVisits = stats.nodeVisits,
-                fraction = filter.Fraction,
-                hit = filter.Hit,
-                point = filter.Point,
-                normal = filter.Normal,
-                shapeId = filter.ShapeId
-            };
+                var callbackIntPtr = Marshal.GetFunctionPointerForDelegate((b2CastResultFcn)filter.CastCallback);
+                var stats = b2World_CastRay(worldId, origin, translation, filter.QueryFilter, callbackIntPtr, contextPtr);
+                return new b2RayResult
+                {
+                    leafVisits = stats.leafVisits,
+                    nodeVisits = stats.nodeVisits,
+                    fraction = filter.Fraction,
+                    hit = filter.Hit,
+                    point = filter.Point,
+                    normal = filter.Normal,
+                    shapeId = filter.ShapeId
+                };
+            }
+            finally
+            {
+                NativeHandle.Free(contextPtr);
+            }
         }
-
-        
     }
 }

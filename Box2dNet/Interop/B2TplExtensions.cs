@@ -27,10 +27,10 @@ namespace Box2dNet.Interop
 
         private static void FinishTaskCallback(IntPtr userTaskIntPtr, IntPtr userContext)
         {
-            // Box2D calls this when it wants our forTask to be finished, so we block the thread to wait for it here.
-            var forEachTask = NativeHandle<Task>.GetObjectFromIntPtr(userTaskIntPtr);
-            forEachTask.Wait();
-            GCHandle.FromIntPtr(userTaskIntPtr).Free();
+            // Box2D calls this when it wants our parallelTask to be finished, so we block the thread to wait for it here.
+            var parallelTask = NativeHandle.GetObject<Task>(userTaskIntPtr);
+            parallelTask.Wait();
+            NativeHandle.Free(userTaskIntPtr);
         }
 
         private static IntPtr EnqueueTaskCallback(IntPtr /* b2TaskCallback */ task, int itemCount, int minRange, IntPtr taskContext, IntPtr userContext)
@@ -44,7 +44,7 @@ namespace Box2dNet.Interop
             if (itemCount % minRange > 0) partitionCount++;
 
             // schedule 1 concurrent task per partition, with a worker-pool with an exact size of 'maxWorkerCount'.
-            var forTask = ParallelForWithMaxWorkerControl(partitionCount, maxWorkerCount, (partitionIdx, workerId) =>
+            var parallelTask = ParallelForWithMaxWorkerControl(partitionCount, maxWorkerCount, (partitionIdx, workerId) =>
             {
                 var startIndex = partitionIdx * minRange;
                 var endIndexExclusive = int.Min(startIndex + minRange, itemCount);
@@ -52,7 +52,7 @@ namespace Box2dNet.Interop
                 return Task.CompletedTask;
             });
 
-            return GCHandle.ToIntPtr(GCHandle.Alloc(forTask));
+            return NativeHandle.Alloc(parallelTask);
         }
 
         /// <summary>

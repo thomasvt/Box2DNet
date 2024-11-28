@@ -65,11 +65,11 @@ foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTou
 If the IntPtr is for passing a game object into Box2D, like ```userData```, you can create a ```NativeHandle``` for your game object to get an IntPtr for it that you can pass to the native Box2D side:
 
 ``` C#
-_handle = new NativeHandle<Ball>(ball); // create a handle for the .NET object.
+_handle = NativeHandle.Alloc(ball); // allocate a handle for the .NET object and return it as IntPtr.
 
 var shapeDef = B2Api.b2DefaultShapeDef();
 // now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
-shapeDef.userData = _handle.IntPtr;
+shapeDef.userData = _handle;
 ```
 
 After this, you can get the .NET game object back from the IntPtr, eg. when getting hit events from Box2D:
@@ -78,7 +78,7 @@ After this, you can get the .NET game object back from the IntPtr, eg. when gett
 var ball = NativeHandle<Ball>.GetObjectFromIntPtr(B2Api.b2Shape_GetUserData(@event.shapeIdA));
 ```
 
-> Don't forget to ```Dispose``` the NativeHandle instance (```_handle``` in the example) when you remove the game object from your game!
+> Don't forget to ```NativeHandle.Free(_handle)``` when you remove the game object from your game!
 
 ### Multi-threading support
 

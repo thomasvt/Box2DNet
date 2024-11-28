@@ -3,39 +3,30 @@
 namespace Box2dNet;
 
 /// <summary>
-/// Wraps a managed object along with a GCHandle so you can pass it as an IntPtr to native code and back. Dispose it when the roundtripping for the object is no longer needed.
+/// Helper methods to manage handles for CLR objects so you can pass then as IntPtr to native code and back.
 /// </summary>
-public class NativeHandle<T> : IDisposable
+public static class NativeHandle
 {
-    private bool _isDisposed;
-
     /// <summary>
-    /// The managed object.
+    /// Allocates a GCHandle and returns it as an IntPtr. Don't forget to Free it!
     /// </summary>
-    public T Object { get; }
-
-    /// <summary>
-    /// Pass this to the native side as a handle to your managed object.
-    /// </summary>
-    public IntPtr IntPtr { get; }
-
-    public NativeHandle(T @object)
+    public static IntPtr Alloc(object @object)
     {
-        Object = @object;
-        IntPtr = GCHandle.ToIntPtr(GCHandle.Alloc(@object));
-    }
-
-    public void Dispose()
-    {
-        if (_isDisposed) return;
-        GCHandle.FromIntPtr(IntPtr).Free();
-        _isDisposed = true;
+        return GCHandle.ToIntPtr(GCHandle.Alloc(@object));
     }
 
     /// <summary>
-    /// Returns the managed Object from an intptr to a NativeHandle that you created earlier/elsewhere.
+    /// Frees a previously allocated handle.
     /// </summary>
-    public static T GetObjectFromIntPtr(IntPtr intPtr)
+    public static void Free(IntPtr intPtr)
+    {
+        GCHandle.FromIntPtr(intPtr).Free();
+    }
+
+    /// <summary>
+    /// Returns the managed Object associated with a handle that you created earlier.
+    /// </summary>
+    public static T GetObject<T>(IntPtr intPtr)
     {
         var obj = GCHandle.FromIntPtr(intPtr).Target;
 #if DEBUG
