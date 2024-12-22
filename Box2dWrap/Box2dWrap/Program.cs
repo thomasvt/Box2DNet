@@ -154,7 +154,7 @@ namespace Box2dWrap
             }
         }
 
-        private static Regex apiStructFieldsRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*(?<type>\\w[\\w\\s\\*]+)\\s+(?<identifier>[^;]+);\\s*(\\/{3}<(?<comment>[^\\n]*))?");
+        private static Regex apiStructFieldsRegex = new("(?:(?:\\/{2,3}(?<comment>[^\\n]*)\\s*)*)\\s*(?<type>\\w[\\w\\s\\*]+)\\s+(?<identifier>[^;]+);\\s*(\\/{3}<(?<comment>[^\\n]*))?", RegexOptions.Multiline);
         private static Regex fixedArrayRegex = new("(?<identifier>[^\\[]+)\\s*\\[\\s*(?<length>[^\\]]+)\\s*\\]");
 
         private static IEnumerable<ApiStructField> ExtractAllStructFields(string structIdentifier, string src)

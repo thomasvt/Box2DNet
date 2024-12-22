@@ -1,5 +1,7 @@
 # Box2DNet - .NET wrapper for 'box2d v3.x'
 
+Latest regen from [Box2d v3](https://github.com/erincatto/box2d): **2024/12/22**
+
 ## Description
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3.x](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
@@ -98,11 +100,11 @@ Check out the ```Box2dNet.Samples``` console app to see working code that gets y
 
 ## Regenerating the wrapper
 
-Currently, I regenerate every few weeks, as Erin pushes changes. The corresponding Win x64 DLLs (debug and release) are included in this repo too, so you won't have to regenerate yourself. 
+Currently, I regenerate every few weeks. The corresponding Win x64 DLLs (debug and release) are included in this repo too, so generally, you won't have to regenerate yourself. 
 
 ### Regenerating yourself:
 
-If you still want to do it yourself: the C# wrapper code can be regenerated with the companion tool ```Box2dWrap```, also in this repo. 
+If you still want/need to do it yourself: the C# wrapper code can be regenerated with the companion tool ```Box2dWrap```, also in this repo. 
 It's a naive C parsing + codegen tool, very specific to the Box2D codebase. It was meant for my eyes only, so it's not the easiest code to find your way in. You are warned :)
 
 It expects commandline parameters: 
@@ -117,11 +119,13 @@ Example:
 
 Steps to rebuild Box2D dlls:
 
+(make sure you have `cmake` installed, (use the .msi from https://cmake.org/download))
+
 * Clone the latest version of ```erincatto/box2d``` onto your PC
 * in ```CMakeLists.txt``` around line 11 add a line ```option(BUILD_SHARED_LIBS "Build using shared libraries" ON)``` which makes it build to dll instead of statically linked lib
 * run ```build.cmd``` -> generates a .sln in ```./build```
 * if it did not open automatically, open the generated ```./build/box2d.sln``` in Visual Studio
-* Rebuild the ```box2d``` project both in Debug and Release to get both .dlls ```box2dd.dll``` and ```box2d.dll```. (don't build the entire sln, it gives errors in the non-static build, atm)
+* **Re**build the ```box2d``` project both in Debug and Release to get both debug dll ```box2dd.dll``` and production dll ```box2d.dll```. (no need to build the entire sln, i have seen the other projects give errors even)
 * copy the 2 dlls from ```.\build\bin\Debug``` and ```.\build\bin\Release``` to the Box2dNet project and set to copy on build (currently I use the csproj directly in my game's .sln)
 * rerun ```Box2DWrap``` to also regenerate the latests Box2d into the Box2dNet project file ```./Interop/B2Api.cs```.
 
