@@ -19,7 +19,7 @@ namespace Box2dWrap
             _structTypeReplacer = structTypeReplacer;
         }
 
-        public string GeneratedCsCode(List<ApiConstant> constants, List<ApiStruct> structs, List<ApiDelegate> delegates, List<ApiFunction> functions,
+        public string GenerateCsCode(List<ApiConstant> constants, List<ApiStruct> structs, List<ApiDelegate> delegates, List<ApiFunction> functions,
             List<ApiEnum> enums, HashSet<string> excludedTypes)
         {
             _structs = structs.ToDictionary(s => s.Identifier);
@@ -90,7 +90,7 @@ public static partial class B2Api
                     AppendComment(sbI, apiFunction.Comment);
                     sbI.AppendLine($"[DllImport(Box2DLibrary, CallingConvention = CallingConvention.Cdecl)]");
                     sbI.AppendLine(
-                        $"public static extern {MapType(apiFunction.ReturnType, false, false)} {apiFunction.Identifier}({parameters});");
+                        $"public static extern {MapType(apiFunction.ReturnType, false, CodeDirection.ClrToNative)} {apiFunction.Identifier}({parameters});");
 
                     sb.Append(sbI.ToString()); // commit
                     cnt++;
@@ -127,6 +127,8 @@ public static partial class B2Api
             return cnt;
         }
 
+        private record ClrStructField(string Identifier, string ClrType);
+
         private int GenerateStructs(List<ApiStruct> structs, List<ApiConstant> constants, StringBuilder sb)
         {
             var cnt = 0;
@@ -142,12 +144,19 @@ public static partial class B2Api
                     var unsafePart = isUnsafe ? "unsafe " : "";
                     sbI.AppendLine($"public {unsafePart} partial struct {apiStruct.Identifier}");
                     sbI.AppendLine("{");
+
+                    var clrFields = new List<ClrStructField>(apiStruct.Fields.Count);
+                    var noFieldsAreArray = true;
+
                     foreach (var field in apiStruct.Fields)
                     {
                         sbI.AppendLine();
                         AppendComment(sbI, field.Comment);
+                        var clrType = MapType(field.Type, false, CodeDirection.NativeToClr);
                         if (field.IsFixedArray)
                         {
+                            noFieldsAreArray = false;
+
                             var cte = constants.Find(c => c.Identifier == field.ArrayLength);
 
                             // this Marshal ByValArray thing doesn't seem to work. Get memory access issues at runtime ...
@@ -157,7 +166,7 @@ public static partial class B2Api
                             // ... so we just repeat the fields to mimic the inline array, and add a helper method to get them by index:
                             var arrayLength = int.Parse(cte == null ? field.ArrayLength : cte.Value);
                             var switchCases = new List<string>();
-                            var clrType = MapType(field.Type, false, true);
+                            ;
                             for (var i = 0; i < arrayLength; i++)
                             {
                                 sbI.AppendLine($"  public {clrType} {field.Identifier}{i};");
@@ -172,9 +181,15 @@ public static partial class B2Api
                         {
                             if (field.Type == "bool")
                                 sbI.AppendLine("  [MarshalAs(UnmanagedType.U1)]"); // else .NET marshals as 32 bit, very fun to narrow down on that one.
-                            sbI.AppendLine($"  public {MapType(field.Type, false, true)} {field.Identifier};");
+                            sbI.AppendLine($"  public {clrType} {field.Identifier};");
+
+                            if (noFieldsAreArray)
+                                clrFields.Add(new ClrStructField(field.Identifier, clrType));
                         }
                     }
+
+                    if (noFieldsAreArray)
+                        GenerateInitializingConstructor(sbI, apiStruct.Identifier, clrFields);
 
                     sbI.AppendLine("}");
 
@@ -192,6 +207,21 @@ public static partial class B2Api
             return cnt;
         }
 
+        /// <summary>
+        /// Generates a convenience constructor that accepts all fields as parameters. Only does this for simple structs.
+        /// </summary>
+        private void GenerateInitializingConstructor(StringBuilder sb, string structIdentifier, IReadOnlyCollection<ClrStructField> fields)
+        {
+            sb.AppendLine();
+            sb.Append($"  public {structIdentifier}(");
+            sb.Append(string.Join(", ", fields.Select(f => $"in {f.ClrType} {f.Identifier}")));
+            sb.AppendLine(")");
+            sb.AppendLine("  {");
+            sb.AppendLine(string.Join(Environment.NewLine, fields.Select(f => $"    this.{f.Identifier} = {f.Identifier};")));
+            sb.AppendLine("  }");
+            sb.AppendLine();
+        }
+
         private int GenerateDelegates(List<ApiDelegate> delegates, StringBuilder sb)
         {
             var cnt = 0;
@@ -204,7 +234,7 @@ public static partial class B2Api
                     var parameters = GenerateParameterList(apiDelegate.Parameters);
                     sb.AppendLine("  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]");
                     sb.AppendLine(
-                        $"  public delegate {MapType(apiDelegate.ReturnType, false, false)} {apiDelegate.Identifier}({parameters});");
+                        $"  public delegate {MapType(apiDelegate.ReturnType, false, CodeDirection.ClrToNative)} {apiDelegate.Identifier}({parameters});");
                     cnt++;
                 }
                 catch (NoGenException e)
@@ -217,6 +247,9 @@ public static partial class B2Api
             return cnt;
         }
 
+        /// <summary>
+        /// Generates a list of parameters for a function.
+        /// </summary>
         private string GenerateParameterList(List<ApiParameter> parameters)
         {
             var csParameters = new List<string>();
@@ -226,7 +259,7 @@ public static partial class B2Api
                 var nextParameterIdentifier = i < parameters.Count - 1 ? parameters[i + 1].Identifier : "";
                 var isArray = p.Type.EndsWith("*") && nextParameterIdentifier.ToLower().Contains("count"); // naive but seems to work for box2d: when a pointer parameter is followed by a 'count' parameter, it's an array, else it's a ptr to a single item.
                 var attribute = (p.Type == "bool") ? "[MarshalAs(UnmanagedType.U1)] " : "";
-                csParameters.Add($"{attribute}{MapType(p.Type, !isArray, false)} {p.Identifier}");
+                csParameters.Add($"{attribute}{MapType(p.Type, !isArray, CodeDirection.ClrToNative)} {p.Identifier}");
             }
             return string.Join(", ", csParameters);
         }
@@ -285,7 +318,16 @@ public static partial class B2Api
             }
         }
 
-        private string MapType(in string cType, bool isPointerButNotArray, bool isNativeToClr)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cType"></param>
+        /// <param name="isNotArray">Only relevant when the type is a pointer. Else ignored.</param>
+        /// <param name="codeDirection"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="NoGenException"></exception>
+        private string MapType(in string cType, bool isNotArray, CodeDirection codeDirection)
         {
             var type = RemoveSpaces(cType);
             var isConst = false;
@@ -347,17 +389,18 @@ public static partial class B2Api
             {
                 if (isPointer)
                 {
-                    if (isPointerButNotArray)
+                    if (isNotArray)
                     {
                         if (isConst) return "in " + type;
                         return "ref " + type;
                     }
 
-                    if (isNativeToClr)
-                        return $"IntPtr /* {cType} */";
+                    if (codeDirection == CodeDirection.NativeToClr)
+                        return $"IntPtr /* {cType} */"; // 'returning' arrays won't allocate .NET arrays. We have to accept the array as an IntPtr and loop over it. See helper method NativeArrayAsSpan in Box2dNet.
 
                     return $"{type}[] /* {cType} */";
                 }
+
                 return type;
             }
 
@@ -372,5 +415,11 @@ public static partial class B2Api
         {
             return new string(src.Where(ch => ch != ' ').ToArray());
         }
+    }
+
+    public enum CodeDirection
+    {
+        ClrToNative,
+        NativeToClr,
     }
 }

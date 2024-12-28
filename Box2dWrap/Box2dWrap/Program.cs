@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Box2dWrap
@@ -75,7 +74,7 @@ namespace Box2dWrap
 
             var generator = new CsGenerator(_extraUsings, _structTypeReplacer);
 
-            var code = generator.GeneratedCsCode(constants, structs, delegates, functions, enums, _excludedTypes);
+            var code = generator.GenerateCsCode(constants, structs, delegates, functions, enums, _excludedTypes);
 
             await File.WriteAllTextAsync(csFilename, code);
         }
@@ -162,23 +161,27 @@ namespace Box2dWrap
             foreach (Match match in apiStructFieldsRegex.Matches(src))
             {
                 var identifier = match.Groups["identifier"].Value.Trim();
-                var arrayMatch = fixedArrayRegex.Match(identifier);
+                var inlineArrayMatch = fixedArrayRegex.Match(identifier);
                 var isFixedArray = false;
                 var arrayLength = string.Empty;
-                if (arrayMatch.Success)
+                if (inlineArrayMatch.Success) // it's a C inline array (fixed-sized array that sits inline in the struct's memory layout)
                 {
                     isFixedArray = true;
-                    identifier = arrayMatch.Groups["identifier"].Value;
-                    arrayLength = arrayMatch.Groups["length"].Value;
+                    identifier = inlineArrayMatch.Groups["identifier"].Value;
+                    arrayLength = inlineArrayMatch.Groups["length"].Value;
                 }
                     
                 var type = match.Groups["type"].Value;
-                var field = new ApiStructField(identifier, type, isFixedArray, arrayLength, GetMultiCaptures(match.Groups["comment"]));
 
-                if (_structFieldModifiers.TryGetValue($"{structIdentifier}.{identifier}", out var modifier))
-                    modifier(field);
+                foreach (var subIdentifier in identifier.Split(',').Select(i => i.Trim())) // -> 'int a, b' are actually 2 fields with the same type, so split the identifier and generate all fields
+                {
+                    var field = new ApiStructField(subIdentifier, type, isFixedArray, arrayLength,
+                        GetMultiCaptures(match.Groups["comment"]));
+                    if (_structFieldModifiers.TryGetValue($"{structIdentifier}.{subIdentifier}", out var modifier))
+                        modifier(field);
 
-                yield return field;
+                    yield return field;
+                }
             }
         }
 
