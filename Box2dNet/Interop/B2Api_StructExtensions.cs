@@ -202,7 +202,23 @@
         /// </summary>
         public static b2Rot FromAngle(float angle)
         {
-            return new b2Rot { c = MathF.Cos(angle), s = MathF.Sin(angle) };
+            return new b2Rot(MathF.Cos(angle), MathF.Sin(angle));
+        }
+    }
+
+    public partial struct b2Polygon
+    {
+        public b2Polygon()
+        {
+            throw new Exception("DO NOT construct b2Polygon, instead use a helper function like b2MakePolygon or b2MakeBox.");
+        }
+    }
+
+    public partial struct b2Hull
+    {
+        public b2Hull()
+        {
+            throw new Exception("DO NOT construct b2Hull, instead use b2ComputeHull().");
         }
     }
 }

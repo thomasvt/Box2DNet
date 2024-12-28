@@ -30,6 +30,17 @@ namespace Box2dWrap
             { "b2Vec2", "Vector2" }
         };
 
+        /// <summary>
+        /// A list of C structs for which we don't generate the initializer ctors (ctors with parameters to set the struct's fields)
+        /// </summary>
+        private static bool ShouldGenerateInitCtor(string structIdentifier)
+        {
+            if (structIdentifier.EndsWith("Def")) return false;
+            if (structIdentifier.EndsWith("Id")) return false;
+            if (structIdentifier.EndsWith("Output")) return false;
+            return true;
+        }
+
         private static string _extraUsings = "using System.Numerics;";
 
         //private static void ReplaceFixedVec2Array(ApiStructField field)
@@ -72,7 +83,7 @@ namespace Box2dWrap
             var functions = ExtractAllApiFunctions(src).ToList();
             var enums = ExtractAlLEnums(src).ToList();
 
-            var generator = new CsGenerator(_extraUsings, _structTypeReplacer);
+            var generator = new CsGenerator(_extraUsings, _structTypeReplacer, ShouldGenerateInitCtor);
 
             var code = generator.GenerateCsCode(constants, structs, delegates, functions, enums, _excludedTypes);
 

@@ -1,16 +1,14 @@
-# Box2DNet - .NET wrapper for 'box2d v3.x'
+# Box2DNet - box2d v3 for .NET
 
 Latest regen from [Box2d v3](https://github.com/erincatto/box2d): **2024/12/22**
 
 ## Description
 
-This is a .NET 8.0 PInvoke wrapper for [Box2d v3.x](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
+This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
 
 A custom tool parses the Box2D C code and generates the C# wrapper code.
 
-Next to the generated wrapper, a few reusable helpers are manually added to ease working with native pointers and wiring the new multithreading support of Box2d to .NET Task Parallel Library.
-
-> This is not a wrapper with a fully tested API. I'm doing this for my own game but due to the automatic generation, it turned out pretty complete, so I'm sharing it.
+Next to the generated wrapper, a growing set of convenient helpers is included. eg, for simplifying code to work with the native pointers or wiring the new multithreading support of Box2d to .NET Task Parallel Library.
 
 > I don't use Unity and therefore cannot support it. This wrapper is meant for stand-alone use in .NET code, for instance with Monogame.
 
@@ -20,19 +18,21 @@ You may do whatever you like with the code in this repo. Don't forget to respect
 
 ## Manual
 
-Box2DNet uses no abstraction layer: you work directly with functions and types directly mapped to the original C definitions with original identifiers. You can therefore use the original [Box2d manual](https://box2d.org/documentation/) 'as is'.
+Box2DNet has no abstraction layer: you work directly with functions and types mapped from the original C definitions with the same names. You can therefore use the original [Box2d manual](https://box2d.org/documentation/) 'as is' for all your functional needs.
 
-### Include Box2DNet in your game
+The rest of the manual below talks only about the wrapper technicalities.
 
-There's no nuget package. Just clone ```Box2DNet``` next to your game folder and include the ```.csproj``` into your game solution.
+### How to include Box2DNet in your game?
+
+There's no nuget package. Just clone the repo next to your game folder and include the ```box2dnet.csproj``` into your game solution.
 
 This will build the Box2DNet project along with your game. When you build in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
 
 > The debug version ```box2dd.dll``` will quit your game with assertion errors when you did something wrong: this helps for debugging your mistakes.
 
-### The Box2D API
+### What's included?
 
-All Box2D functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+All Box2D API functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 
 NOT included:
 
@@ -42,7 +42,7 @@ NOT included:
 
 ### Dealing with IntPtr
 
-A lot of API functions use pointers as parameters, or in structs. In C# these become ```IntPtr```, so you cannot see which `struct` they pointed to in C. To help with this, the struct name is added in comment in the generated C# code, so you can use `go to definition` on these to find out.
+A lot of API functions use pointers as parameters, or in structs. In C# these become ```IntPtr```, so you cannot see which `struct` they pointed to in C. To help with this, the struct name is added in comment in the generated C# code, so just check inside the code (F12 - `go to definition`) to find out.
 
 Example:
 
@@ -53,9 +53,9 @@ Example:
 public IntPtr /* b2SensorBeginTouchEvent* */ beginEvents;
 ```
 
-> If the IntPtr is an array, like in the example, you can use the provided C# method ```NativeArrayAsSpan``` to loop over the contents. 
+This shows that `beginEvents` is a pointer to `b2SensorBeginTouchEvent`.
 
-Like this:
+We know from the Box2D manual (and common sense) that this pointer points to an array. You can use the provided convenience method `NativeArrayAsSpan` to loop over the native contents. Like this:
 
 ``` C#
 var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
@@ -66,7 +66,11 @@ foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTou
 }
 ```
 
-If you want to pass a game object reference into Box2D, like `userData`, you must create a `NativeHandle` for your game object on the .NET side and pass the `IntPtr` to your .NET object to Box2D. Example:
+Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
+
+### Pass a reference to my .NET object into Box2D
+
+If you want to pass a game object reference into Box2D, like `userData`, you must create a `NativeHandle` for your game object on the .NET side and pass the `IntPtr` to Box2D. Example:
 
 ``` C#
 _handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
@@ -83,8 +87,12 @@ var userDataIntPtr = B2Api.b2Shape_GetUserData(@event.shapeIdA);
 var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
 ```
 
-Note that you must keep the NativeHandle alive as long as you as you need the native Box2D to keep hold of the IntPtr to it.
-When you're fully done with it, you must not forget to `NativeHandle.Free(_handle)`. For instance, when you remove the game object from your game.
+Note that you must keep the NativeHandle alive as long as you need native Box2D to keep hold of the pointer to it.
+When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it: 
+
+``` C#
+NativeHandle.Free(_handle);
+```
 
 ### Multi-threading support
 
@@ -99,6 +107,8 @@ var worldDef = useMultiThreading
 
 var b2WorldId = B2Api.b2CreateWorld(worldDef);
 ```
+
+Note that multithreading incurs a severe performance penalty because of the additional infrastructure. You only gain net-profit from multi threading when you simulate a lot of bodies. Measure your specific use cases.
 
 > the TPL in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of the .NET Task framework.
 

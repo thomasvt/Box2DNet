@@ -8,15 +8,17 @@ namespace Box2dWrap
     {
         private readonly string _extraUsings;
         private readonly Dictionary<string, string> _structTypeReplacer;
+        private readonly Func<string, bool> _shouldGenerateInitCtor;
         private Dictionary<string, ApiStruct> _structs;
         private Dictionary<string, ApiEnum> _enums;
         private Dictionary<string, ApiDelegate> _delegates;
         private HashSet<string> _excludedTypes;
 
-        public CsGenerator(string extraUsings, Dictionary<string, string> structTypeReplacer)
+        public CsGenerator(string extraUsings, Dictionary<string, string> structTypeReplacer, Func<string, bool> shouldGenerateInitCtor)
         {
             _extraUsings = extraUsings;
             _structTypeReplacer = structTypeReplacer;
+            _shouldGenerateInitCtor = shouldGenerateInitCtor;
         }
 
         public string GenerateCsCode(List<ApiConstant> constants, List<ApiStruct> structs, List<ApiDelegate> delegates, List<ApiFunction> functions,
@@ -189,7 +191,7 @@ public static partial class B2Api
                     }
 
                     if (noFieldsAreArray)
-                        GenerateInitializingConstructor(sbI, apiStruct.Identifier, clrFields);
+                        GenerateInitCtor(sbI, apiStruct.Identifier, clrFields);
 
                     sbI.AppendLine("}");
 
@@ -210,8 +212,10 @@ public static partial class B2Api
         /// <summary>
         /// Generates a convenience constructor that accepts all fields as parameters. Only does this for simple structs.
         /// </summary>
-        private void GenerateInitializingConstructor(StringBuilder sb, string structIdentifier, IReadOnlyCollection<ClrStructField> fields)
+        private void GenerateInitCtor(StringBuilder sb, string structIdentifier, IReadOnlyCollection<ClrStructField> fields)
         {
+            if (!_shouldGenerateInitCtor(structIdentifier))
+                return;
             sb.AppendLine();
             sb.Append($"  public {structIdentifier}(");
             sb.Append(string.Join(", ", fields.Select(f => $"in {f.ClrType} {f.Identifier}")));
