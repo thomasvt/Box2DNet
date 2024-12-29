@@ -62,7 +62,7 @@ public void Update()
         Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
 }
 
-private bool QueryCallback(b2ShapeId shapeId, IntPtr /* void* */ context)
+private bool QueryCallback(b2ShapeId shapeId, IntPtr context)
 {
     _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
     return true;
