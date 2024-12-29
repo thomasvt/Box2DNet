@@ -1,8 +1,10 @@
-# Box2DNet - box2d v3 for .NET
+# Intro
 
-Latest regen from [Box2d v3](https://github.com/erincatto/box2d): **2024/12/22**
+This is Box2dNet, a 'close-to-the-metal' C# wrapper for box2d **v3** (which is the version that came out mid 2024)
 
-## Description
+Latest regen was **2024/12/22**
+
+# Description
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
 
@@ -12,17 +14,17 @@ Next to the generated wrapper, a growing set of convenient helpers is included. 
 
 > I don't use Unity and therefore cannot support it. This wrapper is meant for stand-alone use in .NET code, for instance with Monogame.
 
-### License
+# License
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-## Manual
+# Manual
 
 Box2DNet has no abstraction layer: you work directly with functions and types mapped from the original C definitions with the same names. You can therefore use the original [Box2d manual](https://box2d.org/documentation/) 'as is' for all your functional needs.
 
 The rest of the manual below talks only about the wrapper technicalities.
 
-### How to include Box2DNet in your game?
+## How to include Box2DNet in your game?
 
 There's no nuget package. Just clone the repo next to your game folder and include the ```box2dnet.csproj``` into your game solution.
 
@@ -30,7 +32,7 @@ This will build the Box2DNet project along with your game. When you build in DEB
 
 > The debug version ```box2dd.dll``` will quit your game with assertion errors when you did something wrong: this helps for debugging your mistakes.
 
-### What's included?
+## What's included?
 
 All Box2D API functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 
@@ -40,22 +42,37 @@ NOT included:
 * b2World_Draw and b2DefaultDebugDraw: hard to support this code in the codegen tool. I intend to manually port this code some day, as it will probably not change much in the future.
 * b2DynamicTree_X: also hard to support these in the codegen tool. But most games don't need to use this directly.
 
-### Dealing with IntPtr
+## Dealing with IntPtr
 
-A lot of API functions use pointers as parameters, or in structs. In C# these become ```IntPtr```, so you cannot see which `struct` they pointed to in C. To help with this, the struct name is added in comment in the generated C# code, so just check inside the code (F12 - `go to definition`) to find out.
+A lot of API functions use pointers as parameters, or in structs. In C# these become ```IntPtr```, so you cannot see which `struct` they originally pointed to in C. To help with this, xml comments showing the original c type are provided wherever applicable in C#: parameters, return types, struct fields.
 
-Example:
+### Delegate IntPtr parameters 
+
+Some functions require you to pass in a callback method as delegate. These are always IntPtr, but we can see the actual delegate type for that parameter in the generated comment. You should be able to see it through your IDE's tooltips for that parameter, or go to the source and check the comment manually.
+
+Here is an example how to call b2World_OverlapCircle with an IntPtr callback delegate of type b2OverlapResultFcn:
 
 ``` C#
-/// <summary>
-/// Array of sensor begin touch events
-/// </summary>
-public IntPtr /* b2SensorBeginTouchEvent* */ beginEvents;
+public void Update()
+{
+    var circle = new b2Circle(Vector2.Zero, 10);
+    var filter = new b2QueryFilter(PhysicsLayer.Query, PhysicsLayer.RobotCore);
+    B2Api.b2World_OverlapCircle(_b2WorldId, circle, b2Transform.Zero, filter, 
+        Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
+}
+
+private bool QueryCallback(b2ShapeId shapeId, IntPtr /* void* */ context)
+{
+    _list.Add(shapeId);
+    return true;
+}
 ```
 
-This shows that `beginEvents` is a pointer to `b2SensorBeginTouchEvent`.
+### Reading native arrays from IntPtr
 
-We know from the Box2D manual (and common sense) that this pointer points to an array. You can use the provided convenience method `NativeArrayAsSpan` to loop over the native contents. Like this:
+Some structs you receive from native Box2D contain arrays. For example `b2ContactEvents.beginEvents`, which is an IntPtr, shows in its parameter comment that you should read it as an array of `b2SensorBeginTouchEvent`:
+
+To do this, you can use the provided convenience method `NativeArrayAsSpan` to loop over the native contents. Like this:
 
 ``` C#
 var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
@@ -68,9 +85,11 @@ foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTou
 
 Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
 
-### Pass a reference to my .NET object into Box2D
+### Pass a reference to my .NET object into native Box2D as IntPtr
 
-If you want to pass a game object reference into Box2D, like `userData`, you must create a `NativeHandle` for your game object on the .NET side and pass the `IntPtr` to Box2D. Example:
+If you want to pass a game object reference into Box2D, like `userData`, you must also do this as an IntPtr.
+
+To do this, you allocate a `NativeHandle` for your .NET object and pass the handle's `IntPtr` to Box2D. Example:
 
 ``` C#
 _handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
@@ -80,21 +99,21 @@ var shapeDef = B2Api.b2DefaultShapeDef();
 shapeDef.userData = _handle;
 ```
 
-After this, when Box2D passes the IntPtr back to you somewhere, you can get the corresponding .NET game object back like this:
+After this, when Box2D passes the `IntPtr` back to you somewhere, you can get hold of the corresponding .NET object like this:
 
 ``` C#
 var userDataIntPtr = B2Api.b2Shape_GetUserData(@event.shapeIdA);
 var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
 ```
 
-Note that you must keep the NativeHandle alive as long as you need native Box2D to keep hold of the pointer to it.
-When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it: 
+Note that you must keep the `NativeHandle` alive as long as you want the `IntPtr` held by native Box2D to remain valid.
+When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it, like this: 
 
 ``` C#
 NativeHandle.Free(_handle);
 ```
 
-### Multi-threading support
+## Multi-threading support
 
 Box2dNet comes with .NET integration for the new multi-threaded task system that Box2D uses. 
 
@@ -112,11 +131,11 @@ Note that multithreading incurs a severe performance penalty because of the addi
 
 > the TPL in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of the .NET Task framework.
 
-### Samples
+## Samples
 
-Check out the ```Box2dNet.Samples``` console app to see working code that gets you started on common usecases like detecting collisions.
+Most specific techniques are described in the manual above, but you can also check out the `Box2dNet.Samples` console app in this repo to see working code that gets you started on common usecases like detecting collisions.
 
-## Regenerating the wrapper
+# Regenerating the wrapper
 
 Currently, I regenerate every few weeks. The corresponding Win x64 DLLs (debug and release) are included in this repo too, so generally, you won't have to regenerate yourself. 
 
@@ -125,7 +144,7 @@ But if you must:
 * regenerate the existing `B2Api.cs` with the `Box2dWrap` tool.
 * rebuild and replace the existing two native dlls in the Box2dNet project
 
-### Regenerate the C# code
+## Regenerate the C# code
 
 The C# wrapper code can be regenerated with the companion codegen tool ```Box2dWrap```, also in this repo. 
 It's a naive C parsing + codegen tool, very specific to the Box2D codebase. It was meant for my eyes only, so it's not the easiest code to find your way in. You are warned :)
@@ -143,7 +162,7 @@ Example:
 The generator gives several warnings about the "exclude-list", which is deliberate, and therefore to be ignored.
 If you get other warnings or errors, though, some of the new C code is incompatible with my tool. You can let me know if I'm not working on it already, or you can give it a shot yourself and send me a PR.
 
-### Rebuilding the Box2D DLLs
+## Rebuilding the Box2D DLLs
 
 (make sure you have `cmake` installed, (use the .msi from https://cmake.org/download))
 

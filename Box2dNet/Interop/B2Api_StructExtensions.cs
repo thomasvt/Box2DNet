@@ -1,4 +1,6 @@
-﻿namespace Box2dNet.Interop
+﻿using System.Numerics;
+
+namespace Box2dNet.Interop
 {
     public partial struct b2WorldDef
     {
@@ -204,6 +206,19 @@
         {
             return new b2Rot(MathF.Cos(angle), MathF.Sin(angle));
         }
+
+        /// <summary>
+        /// Returns a rotation of zero degrees.
+        /// </summary>
+        public static b2Rot Zero = b2Rot.FromAngle(0);
+    }
+
+    public partial struct b2Transform
+    {
+        /// <summary>
+        /// Returns a transform with zero translation and zero rotation.
+        /// </summary>
+        public static b2Transform Zero = new b2Transform(Vector2.Zero, b2Rot.Zero);
     }
 
     public partial struct b2Polygon

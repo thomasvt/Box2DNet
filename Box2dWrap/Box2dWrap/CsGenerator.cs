@@ -89,7 +89,7 @@ public static partial class B2Api
                     var sbI = new StringBuilder();
                     var parameters = GenerateParameterList(apiFunction.Parameters);
                     sbI.AppendLine();
-                    AppendComment(sbI, apiFunction.Comment);
+                    AppendComment(sbI, apiFunction.Comment, apiFunction.ReturnType, apiFunction.Parameters.ToDictionary(p => p.Identifier, p => $"(Original C type: {p.Type})"));
                     sbI.AppendLine($"[DllImport(Box2DLibrary, CallingConvention = CallingConvention.Cdecl)]");
                     sbI.AppendLine(
                         $"public static extern {MapType(apiFunction.ReturnType, false, CodeDirection.ClrToNative)} {apiFunction.Identifier}({parameters});");
@@ -115,7 +115,7 @@ public static partial class B2Api
                 try
                 {
                     sb.AppendLine();
-                    AppendComment(sb, apiConstant.Comment);
+                    AppendComment(sb, apiConstant.Comment, apiConstant.Type);
                     var code = $"public const {apiConstant.Type} {apiConstant.Identifier} = {apiConstant.Value};";
                     sb.AppendLine(code);
                     cnt++;
@@ -141,7 +141,7 @@ public static partial class B2Api
                     var isUnsafe = false; // apiStruct.Fields.Any(f => f.IsFixedArray);
                     var sbI = new StringBuilder();
                     sbI.AppendLine();
-                    AppendComment(sbI, apiStruct.Comment);
+                    AppendComment(sbI, apiStruct.Comment, null);
                     sbI.AppendLine("[StructLayout(LayoutKind.Sequential)]");
                     var unsafePart = isUnsafe ? "unsafe " : "";
                     sbI.AppendLine($"public {unsafePart} partial struct {apiStruct.Identifier}");
@@ -153,7 +153,7 @@ public static partial class B2Api
                     foreach (var field in apiStruct.Fields)
                     {
                         sbI.AppendLine();
-                        AppendComment(sbI, field.Comment);
+                        AppendComment(sbI, field.Comment, field.Type);
                         var clrType = MapType(field.Type, false, CodeDirection.NativeToClr);
                         if (field.IsFixedArray)
                         {
@@ -234,7 +234,8 @@ public static partial class B2Api
                 try
                 {
                     sb.AppendLine();
-                    AppendComment(sb, apiDelegate.Comment);
+                    AppendComment(sb, apiDelegate.Comment, apiDelegate.ReturnType, apiDelegate.Parameters.ToDictionary(p => p.Identifier, p =>
+                        $"(Original C type: {p.Type})"));
                     var parameters = GenerateParameterList(apiDelegate.Parameters);
                     sb.AppendLine("  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]");
                     sb.AppendLine(
@@ -261,7 +262,8 @@ public static partial class B2Api
             {
                 var p = parameters[i];
                 var nextParameterIdentifier = i < parameters.Count - 1 ? parameters[i + 1].Identifier : "";
-                var isArray = p.Type.EndsWith("*") && nextParameterIdentifier.ToLower().Contains("count"); // naive but seems to work for box2d: when a pointer parameter is followed by a 'count' parameter, it's an array, else it's a ptr to a single item.
+                var isArray = p.Type.EndsWith("*") && 
+                              (p.Identifier.ToLower().EndsWith("array") || nextParameterIdentifier.ToLower().Contains("count") || nextParameterIdentifier.ToLower().Contains("capacity")); // naive but seems to work for box2d: when a pointer parameter is followed by a 'count' parameter, it's an array, else it's a ptr to a single item.
                 var attribute = (p.Type == "bool") ? "[MarshalAs(UnmanagedType.U1)] " : "";
                 csParameters.Add($"{attribute}{MapType(p.Type, !isArray, CodeDirection.ClrToNative)} {p.Identifier}");
             }
@@ -279,7 +281,7 @@ public static partial class B2Api
                 foreach (var field in apiEnum.Fields)
                 {
                     sb.AppendLine();
-                    AppendComment(sb, field.Comment);
+                    AppendComment(sb, field.Comment, null);
 
                     var valuePart = field.Value == null ? "" : $" = {field.Value}";
                     sb.AppendLine($"  {field.Identifier}{valuePart},");
@@ -295,18 +297,18 @@ public static partial class B2Api
 
         private static Regex ParameterRegex = new Regex("@param\\s+(?<identifier>\\S+)\\s+(?<description>.*)");
 
-        private void AppendComment(StringBuilder sb, List<string> comment)
+        private void AppendComment(StringBuilder sb, List<string> comment, string? returnType, Dictionary<string, string>? extraParameterComments = null)
         {
+            var originalParameterComments = new Dictionary<string, string>();
             if (comment.Count > 0)
             {
-                var parameters = new Dictionary<string, string>();
                 sb.AppendLine("  /// <summary>");
                 foreach (var s in comment)
                 {
                     var parameterMatch = ParameterRegex.Match(s);
                     if (parameterMatch.Success)
                     {
-                        parameters.Add(parameterMatch.Groups["identifier"].Value, parameterMatch.Groups["description"].Value);
+                        originalParameterComments.Add(parameterMatch.Groups["identifier"].Value, parameterMatch.Groups["description"].Value);
                     }
                     else
                     {
@@ -314,11 +316,27 @@ public static partial class B2Api
                     }
                 }
                 sb.AppendLine("  /// </summary>");
+            }
 
-                foreach (var p in parameters)
-                {
-                    sb.AppendLine($"  /// <param name=\"{p.Key}\">{p.Value}</param>");
-                }
+            if (!string.IsNullOrWhiteSpace(returnType))
+                sb.AppendLine($"  /// <returns>Original C type: {returnType}</returns>");
+
+            AppendParameterComments(sb, originalParameterComments, extraParameterComments); // if any...
+        }
+
+        private static void AppendParameterComments(StringBuilder sb, Dictionary<string, string> originalParameterComments,
+            Dictionary<string, string>? extraParameterComments)
+        {
+            var parameterIdentifiers = originalParameterComments.Keys.ToList();
+            if (extraParameterComments != null) parameterIdentifiers.AddRange(extraParameterComments.Keys);
+            foreach (var parameter in parameterIdentifiers)
+            {
+                var parameterCommentLines = new List<string>();
+                if (originalParameterComments.TryGetValue(parameter, out var originalComment))
+                    parameterCommentLines.Add(originalComment);
+                if (extraParameterComments != null && extraParameterComments.TryGetValue(parameter, out var extraComment))
+                    parameterCommentLines.Add(extraComment);
+                sb.AppendLine($"  /// <param name=\"{parameter}\">{string.Join("\r\n  /// ", parameterCommentLines)}</param>");
             }
         }
 
@@ -377,7 +395,7 @@ public static partial class B2Api
             if (_delegates.TryGetValue(type, out var apiDelegate))
             {
                 if (!isPointer) throw new Exception($"Used type seems to be delegate '{apiDelegate.Identifier}' but it's not a pointer, which is invalid C.");
-                return $"IntPtr /* {apiDelegate.Identifier} */";
+                return $"IntPtr";
             }
 
             // type is a struct?
@@ -400,9 +418,9 @@ public static partial class B2Api
                     }
 
                     if (codeDirection == CodeDirection.NativeToClr)
-                        return $"IntPtr /* {cType} */"; // 'returning' arrays won't allocate .NET arrays. We have to accept the array as an IntPtr and loop over it. See helper method NativeArrayAsSpan in Box2dNet.
+                        return "IntPtr"; // 'returning' arrays won't allocate .NET arrays. We have to accept the array as an IntPtr and loop over it. See helper method NativeArrayAsSpan in Box2dNet.
 
-                    return $"{type}[] /* {cType} */";
+                    return $"{type}[]";
                 }
 
                 return type;

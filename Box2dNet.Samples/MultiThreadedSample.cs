@@ -6,10 +6,12 @@ namespace Box2dNet.Samples
 {
     internal class MultiThreadedSample : ISample
     {
+        private const int BallCount = 2000;
+
         public void Run()
         {
             
-            Console.WriteLine("We will now drop 5000 balls on the floor: first in a single-threaded, then a multi-threaded test. ");
+            Console.WriteLine($"We will now drop {BallCount} balls on the floor: first in a single-threaded, then a multi-threaded test. ");
             Console.WriteLine("We measure time, and track the position of one ball to compare if both tests have the same outcome.");
             Console.WriteLine();
             Console.WriteLine("Press enter to begin ...");
@@ -43,8 +45,8 @@ namespace Box2dNet.Samples
                 // add a static ground for the blocks to fall onto:
                 AddGround(b2WorldId);
 
-                // add a boatload of blocks
-                for (var i = 0; i < 5000; i++)
+                // add a boatload of balls
+                for (var i = 0; i < BallCount; i++)
                 {
                     AddBall(b2WorldId, new(i % 100, 150 - i / 100));
                 }
