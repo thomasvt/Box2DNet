@@ -50,20 +50,21 @@ A lot of API functions use pointers as parameters, or in structs. In C# these be
 
 Some functions require you to pass in a callback method as delegate. These are always IntPtr, but we can see the actual delegate type for that parameter in the generated comment. You should be able to see it through your IDE's tooltips for that parameter, or go to the source and check the comment manually.
 
-Here is an example how to call b2World_OverlapCircle with an IntPtr callback delegate of type b2OverlapResultFcn:
+Here is an example how to call `b2World_OverlapCircle` with an `IntPtr` callback delegate of type `b2OverlapResultFcn`:
 
 ``` C#
 public void Update()
 {
     var circle = new b2Circle(Vector2.Zero, 10);
     var filter = new b2QueryFilter(PhysicsLayer.Query, PhysicsLayer.RobotCore);
+    _list.Clear();
     B2Api.b2World_OverlapCircle(_b2WorldId, circle, b2Transform.Zero, filter, 
         Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
 }
 
 private bool QueryCallback(b2ShapeId shapeId, IntPtr /* void* */ context)
 {
-    _list.Add(shapeId);
+    _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
     return true;
 }
 ```
