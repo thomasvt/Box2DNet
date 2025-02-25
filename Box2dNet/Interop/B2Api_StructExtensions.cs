@@ -14,12 +14,12 @@ namespace Box2dNet.Interop
     {
         public override string ToString()
         {
-            return $"w[{index1}:{revision}]";
+            return $"w[{index1}:{generation}]";
         }
 
         public bool Equals(b2WorldId other)
         {
-            return index1 == other.index1 && revision == other.revision;
+            return index1 == other.index1 && generation == other.generation;
         }
 
         public override bool Equals(object? obj)
@@ -29,7 +29,7 @@ namespace Box2dNet.Interop
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(index1, revision);
+            return HashCode.Combine(index1, generation);
         }
 
         public static bool operator ==(b2WorldId a, b2WorldId b)
@@ -55,12 +55,12 @@ namespace Box2dNet.Interop
     {
         public override string ToString()
         {
-            return $"w[{world0}].B[{index1}:{revision}]";
+            return $"w[{world0}].B[{index1}:{generation}]";
         }
 
         public bool Equals(b2BodyId other)
         {
-            return index1 == other.index1 && world0 == other.world0 && revision == other.revision;
+            return index1 == other.index1 && world0 == other.world0 && generation == other.generation;
         }
 
         public override bool Equals(object? obj)
@@ -70,7 +70,7 @@ namespace Box2dNet.Interop
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(index1, world0, revision);
+            return HashCode.Combine(index1, world0, generation);
         }
 
         public static bool operator ==(b2BodyId a, b2BodyId b)
@@ -104,12 +104,12 @@ namespace Box2dNet.Interop
     {
         public override string ToString()
         {
-            return $"W[{world0}].S[{index1}:{revision}]";
+            return $"W[{world0}].S[{index1}:{generation}]";
         }
 
         public bool Equals(b2ShapeId other)
         {
-            return index1 == other.index1 && world0 == other.world0 && revision == other.revision;
+            return index1 == other.index1 && world0 == other.world0 && generation == other.generation;
         }
 
         public override bool Equals(object? obj)
@@ -119,7 +119,7 @@ namespace Box2dNet.Interop
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(index1, world0, revision);
+            return HashCode.Combine(index1, world0, generation);
         }
 
         public static bool operator ==(b2ShapeId a, b2ShapeId b)
