@@ -36,8 +36,8 @@ NOT included:
 
 # Dealing with IntPtr
 
-The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in the .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
-To help with this, Box2dNet includes the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
+The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
+To help with this, Box2dNet mentions the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
 
 To help you with IntPtrs, the following sections show solutions for most use cases:
 
@@ -45,12 +45,12 @@ To help you with IntPtrs, the following sections show solutions for most use cas
 
 Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
 
-To find out the parameters and return type, you must:
+To find out what parameters and return type your callback function should have, you must:
 
 * check the generated comments to find the identifier of the original C type
 * search for that identifier in the B2Api.cs to find the C# delegate definition.
-
-Once you found it, you create your function in C# and pass a function pointer to the Box2D native side.
+* create your callback function in C#
+* pass a function pointer retrieves with `Marshal.GetFunctionPointerForDelegate` to the Box2D native side.
 
 Here is an example on how to call `b2World_OverlapCircle` with a callback delegate of type `b2OverlapResultFcn`:
 
@@ -64,7 +64,7 @@ public void Update()
         Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
 }
 
-private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- 'b2OverlapResultFcn'
+private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- delegate 'b2OverlapResultFcn'
 {
     _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
     return true;
