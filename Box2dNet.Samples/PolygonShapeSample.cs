@@ -21,7 +21,7 @@ namespace Box2dNet.Samples
 
                 // ... with polygon shape
                 var shapeDef = B2Api.b2DefaultShapeDef();
-                var polygon = CreatePolygon(new Vector2[] { new(0, 0), new(0, 1), new(1, 1), new(1, 0) });
+                var polygon = CreatePolygon([new(0, 0), new(0, 1), new(1, 1), new(1, 0)]);
                 var b2ShapeId = B2Api.b2CreatePolygonShape(b2BodyId, in shapeDef, in polygon);
 
                 // simulate world a few steps and prove it's alive:

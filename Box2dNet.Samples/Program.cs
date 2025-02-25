@@ -10,7 +10,8 @@
                 new PolygonShapeSample(),
                 new MultiThreadedSample(),
                 new HitEventsSample(),
-                new TrackGameObjectWithUserDataSample()
+                new TrackGameObjectWithUserDataSample(),
+                new DebugDrawSample(),
             };
 
             while (true)
