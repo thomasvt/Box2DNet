@@ -2,17 +2,16 @@
 
 This is Box2dNet, a 'close-to-the-metal' C# wrapper for box2d **v3** (which is the version that came out mid 2024)
 
-Latest regen was **2024/12/22**
+Latest regen from Box2D sources: **2025/02/25**
 
 # Description
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
+Main purpose for this wrapper is to be very thin, as if you were working directly with the original C version.
 
-A custom tool parses the Box2D C code and generates the C# wrapper code.
+Next to the generated wrapper, some convenient helpers are included for simplifying your working with the native pointers and enabling the new multithreading support of Box2d in .NET.
 
-Next to the generated wrapper, a growing set of convenient helpers is included. eg, for simplifying code to work with the native pointers or wiring the new multithreading support of Box2d to .NET Task Parallel Library.
-
-> I don't use Unity and therefore cannot support it. This wrapper is meant for stand-alone use in .NET code, for instance with Monogame.
+> I don't use Unity and therefore cannot support it. This wrapper is meant to run in standard .NET runtimes, for instance combined with Monogame or Godot.
 
 # License
 
@@ -21,8 +20,6 @@ You may do whatever you like with the code in this repo. Don't forget to respect
 # Manual
 
 Box2DNet has no abstraction layer: you work directly with functions and types mapped from the original C definitions with the same names. You can therefore use the original [Box2d manual](https://box2d.org/documentation/) 'as is' for all your functional needs.
-
-The rest of the manual below talks only about the wrapper technicalities.
 
 ## How to include Box2DNet in your game?
 
@@ -44,13 +41,18 @@ NOT included:
 
 ## Dealing with IntPtr
 
-A lot of API functions use pointers as parameters, or in structs. In C# these become ```IntPtr```, so you cannot see which `struct` they originally pointed to in C. To help with this, xml comments showing the original c type are provided wherever applicable in C#: parameters, return types, struct fields.
+The largest down-side of PInvoke wrappers is that the C pointers become `IntPtr` in the .NET.
+Because of this, you cannot see which `struct` or `delegate` a certain field must be, they're all `IntPtr`. 
+To help with this, Box2dNet includes the original C type in the generated comments of the C# wrapper code wherever applicable. Code completion should show this information.
+
+To help you, solutions to most use cases involving IntPtr are shown in the following sections:
 
 ### Delegate IntPtr parameters 
 
-Some functions require you to pass in a callback method as delegate. These are always IntPtr, but we can see the actual delegate type for that parameter in the generated comment. You should be able to see it through your IDE's tooltips for that parameter, or go to the source and check the comment manually.
+Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
+so we have to check the generated comments to find out the underlying C type and pass it as a function pointer.
 
-Here is an example how to call `b2World_OverlapCircle` with an `IntPtr` callback delegate of type `b2OverlapResultFcn`:
+Here is an example on how to call `b2World_OverlapCircle` with a callback delegate of type `b2OverlapResultFcn`:
 
 ``` C#
 public void Update()
@@ -71,9 +73,9 @@ private bool QueryCallback(b2ShapeId shapeId, IntPtr context)
 
 ### Reading native arrays from IntPtr
 
-Some structs you receive from native Box2D contain arrays. For example `b2ContactEvents.beginEvents`, which is an IntPtr, shows in its parameter comment that you should read it as an array of `b2SensorBeginTouchEvent`:
+Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies.
 
-To do this, you can use the provided convenience method `NativeArrayAsSpan` to loop over the native contents. Like this:
+Example: field `IntPtr b2ContactEvents.beginEvents` shows in its comment that you should read it as an array of `b2ContactBeginTouchEvent`:
 
 ``` C#
 var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
@@ -84,11 +86,11 @@ foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTou
 }
 ```
 
-Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
+> Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
 
 ### Pass a reference to my .NET object into native Box2D as IntPtr
 
-If you want to pass a game object reference into Box2D, like `userData`, you must also do this as an IntPtr.
+If you want to pass a .NET object reference into native Box2D, like tagging a shape with `userData`, you must also do this using an `IntPtr`.
 
 To do this, you allocate a `NativeHandle` for your .NET object and pass the handle's `IntPtr` to Box2D. Example:
 
@@ -98,12 +100,14 @@ _handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET obj
 var shapeDef = B2Api.b2DefaultShapeDef();
 // now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
 shapeDef.userData = _handle;
+var circle = new b2Circle() { radius = 1 };
+var b2ShapeId = B2Api.b2CreateCircleShape(b2BodyId, in shapeDef, in circle);
 ```
 
 After this, when Box2D passes the `IntPtr` back to you somewhere, you can get hold of the corresponding .NET object like this:
 
 ``` C#
-var userDataIntPtr = B2Api.b2Shape_GetUserData(@event.shapeIdA);
+var userDataIntPtr = B2Api.b2Shape_GetUserData(shapeId);
 var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
 ```
 
