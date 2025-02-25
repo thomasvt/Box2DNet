@@ -6,10 +6,10 @@ Latest regen from Box2D sources: **2025/02/25**
 
 # Description
 
-This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d) for .NET games that have their own engine. 
-Main purpose for this wrapper is to be very thin, as if you were working directly with the original C version.
+This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d). 
+The main objective for this wrapper is to be very thin, as if you were working directly with the original C library.
 
-Next to the generated wrapper, some convenient helpers are included for simplifying your working with the native pointers and enabling the new multithreading support of Box2d in .NET.
+Next to the generated wrapper, some convenient helpers are included for simplifying your work in .NET. See below for explanations about these features.
 
 > I don't use Unity and therefore cannot support it. This wrapper is meant to run in standard .NET runtimes, for instance combined with Monogame or Godot.
 
@@ -36,16 +36,21 @@ NOT included:
 
 # Dealing with IntPtr
 
-The largest down-side of PInvoke wrappers is that the C pointers become `IntPtr` in the .NET.
-Because of this, you cannot see which `struct` or `delegate` a certain field must be, they're all `IntPtr`. 
-To help with this, Box2dNet includes the original C type in the generated comments of the C# wrapper code wherever applicable. Code completion should show this information.
+The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in the .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
+To help with this, Box2dNet includes the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
 
-To help you, solutions to most use cases involving IntPtr are shown in the following sections:
+To help you with IntPtrs, the following sections show solutions for most use cases:
 
 ## Delegate IntPtr parameters 
 
 Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
-so we have to check the generated comments to find out the underlying C type and pass it as a function pointer.
+
+To find out the parameters and return type, you must:
+
+* check the generated comments to find the identifier of the original C type
+* search for that identifier in the B2Api.cs to find the C# delegate definition.
+
+Once you found it, you create your function in C# and pass a function pointer to the Box2D native side.
 
 Here is an example on how to call `b2World_OverlapCircle` with a callback delegate of type `b2OverlapResultFcn`:
 
@@ -59,7 +64,7 @@ public void Update()
         Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
 }
 
-private bool QueryCallback(b2ShapeId shapeId, IntPtr context)
+private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- 'b2OverlapResultFcn'
 {
     _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
     return true;
