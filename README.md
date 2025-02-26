@@ -1,15 +1,11 @@
+> Latest regen from Box2D sources: **2025/02/25**
+
 # Intro
-
-This is Box2dNet, a 'close-to-the-metal' C# wrapper for box2d **v3** (which came out mid 2024)
-
-Latest regen from Box2D sources: **2025/02/25**
-
-# Description
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d). 
 The main objective for this wrapper is to be very thin, as if you were working directly with the original C library.
 
-Next to the generated wrapper, some convenient helpers are included for simplifying your work in .NET. See below for explanations about these features.
+Next to the generated wrapper, some helper code is provided for simplifying your work in .NET. See below for explanations about these features.
 
 > I don't use Unity and therefore cannot support it. This wrapper is meant to run in standard .NET runtimes, for instance combined with Monogame or Godot.
 
