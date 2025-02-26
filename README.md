@@ -1,6 +1,6 @@
 # Intro
 
-This is Box2dNet, a 'close-to-the-metal' C# wrapper for box2d **v3** (which is the version that came out mid 2024)
+This is Box2dNet, a 'close-to-the-metal' C# wrapper for box2d **v3** (which came out mid 2024)
 
 Latest regen from Box2D sources: **2025/02/25**
 
