@@ -38,12 +38,13 @@ NOT included:
 
 # Dealing with pointers (IntPtr)
 
-The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
-To help with this, Box2dNet mentions the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
+The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the helpful identifier of the `struct` or `delegate` is lost in C#. 
+
+To help with this, Box2dNet mentions the original C type in the C# generated comments wherever possible. Code completion should therefore show this information. Worst case, you can GoToSource (F12) on anything and will find the helpful name in /* comment */ just next to `IntPtr` in the wrapper's source.
 
 To help you with IntPtrs, the following sections show solutions for most use cases:
 
-## Delegate IntPtr parameters 
+## Callbacks: passing in delegates to IntPtr parameters
 
 Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
 
@@ -75,7 +76,7 @@ private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- delegate 'b
 
 ## Reading native arrays from IntPtr
 
-Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies.
+Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies or allocating an iterator.
 
 Example: field `IntPtr b2ContactEvents.beginEvents` shows in its comment that you should read it as an array of `b2ContactBeginTouchEvent`:
 
