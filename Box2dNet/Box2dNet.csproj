@@ -5,7 +5,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Box2d v3 for .NET</Title>
+    <Authors>Thomas Vantroyen</Authors>
+    <Description>A thin Box2D v3 .NET wrapper that stays true to the original API.</Description>
+    <PackageProjectUrl>https://github.com/thomasvt/Box2D3Net</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/thomasvt/Box2D3Net</RepositoryUrl>
+	  <Version>3.1.0.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="box2d.dll">
