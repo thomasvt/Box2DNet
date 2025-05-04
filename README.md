@@ -1,4 +1,4 @@
-> Latest regen from Box2D sources: **2025/02/25**
+> Latest regen from Box2D v3.1: **2025/05/04**
 
 # Intro
 
