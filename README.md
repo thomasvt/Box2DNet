@@ -1,9 +1,13 @@
-> Latest regen from Box2D sources: **2025/02/25**
+> Latest regen from Box2D v3.1: **2025/05/04**
 
 # Intro
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d). 
-The main objective for this wrapper is to be very thin, as if you were working directly with the original C library.
+
+The main objective for this wrapper is to be:
+
+* very thin, as if you were working directly with the original C library.
+* low GC pressure: prevent repeated short lived heap allocs
 
 Next to the generated wrapper, some helper code is provided for simplifying your work in .NET. See below for explanations about these features.
 
@@ -13,31 +17,34 @@ Next to the generated wrapper, some helper code is provided for simplifying your
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-# How to include Box2DNet in your game?
+# QUICKSTART
 
-There's no nuget package. Just clone the repo next to your game folder and include the ```box2dnet.csproj``` into your game solution.
+There's no nuget package. Just clone this repo close to your game folder, include the ```box2dnet.csproj``` into your game's .sln and start calling Box2D API functions from static class `Box2dNet.Interop.B2Api`, their identifiers are the same as the original, on purpose. That's basically it.
 
-This will build the Box2DNet project along with your game. When you build in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
+The main difference with the original API is in dealing with pointers. See section `Dealing with pointers (IntPtr)` in this manual for making that easier.
+
+When you build your game in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
 
 > The debug version ```box2dd.dll``` will quit your game with assertion errors when you did something wrong: this helps for debugging your mistakes.
 
 # What's included?
 
-All Box2D API functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+All Box2D API functions are available as C# static methods with the exact same identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 
 NOT included:
 
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
-* b2DynamicTree_X: hard to support these in the codegen tool. But most games won't need these functions.
+* b2DynamicTree_X: too little value for too much effort to support this in my codegen tool. This is the spatial tree used internally by Box2D. I think Erin exposed it for public use because people may want to use it for other purposes (?). But you don't need this for normal Box2D use.
 
-# Dealing with IntPtr
+# Dealing with pointers (IntPtr)
 
-The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
-To help with this, Box2dNet mentions the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
+The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the helpful identifier of the `struct` or `delegate` is lost in C#. 
+
+To help with this, Box2dNet mentions the original C type in the C# generated comments wherever possible. Code completion should therefore show this information. Worst case, you can GoToSource (F12) on anything and will find the helpful name in /* comment */ just next to `IntPtr` in the wrapper's source.
 
 To help you with IntPtrs, the following sections show solutions for most use cases:
 
-## Delegate IntPtr parameters 
+## Callbacks: passing in delegates to IntPtr parameters
 
 Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
 
@@ -69,7 +76,7 @@ private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- delegate 'b
 
 ## Reading native arrays from IntPtr
 
-Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies.
+Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies or allocating an iterator.
 
 Example: field `IntPtr b2ContactEvents.beginEvents` shows in its comment that you should read it as an array of `b2ContactBeginTouchEvent`:
 
