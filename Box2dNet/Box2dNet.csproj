@@ -12,7 +12,7 @@
     <PackageProjectUrl>https://github.com/thomasvt/Box2D3Net</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/thomasvt/Box2D3Net</RepositoryUrl>
-	  <Version>3.1.0.0</Version>
+	  <Version>3.1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

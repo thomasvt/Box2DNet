@@ -2,30 +2,31 @@
 
 # Intro
 
-This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d). 
+This is a thin [Box2d v3](https://github.com/erincatto/box2d) wrapper that stays true to the original API. 
 
 The main objective for this wrapper is to be:
 
 * very thin, as if you were working directly with the original C library.
-* low GC pressure: prevent repeated short lived heap allocs
+* performance: prevent data copying, prevent shortlived heap allocations.
 
-Next to the generated wrapper, some helper code is provided for simplifying your work in .NET. See below for explanations about these features.
+Because of these, Box2dNet gives you full control over the API with the same names/contracts as the original, but with a bit of manual labour here and there.
 
 > I don't use Unity and therefore cannot support it. This wrapper is meant to run in standard .NET runtimes, for instance combined with Monogame or Godot.
+
+# QUICKSTART
+
+* Add the [Box2dNet nuget package](https://www.nuget.org/packages/Box2dNet/) to your game's solution.
+* Start calling Box2D API methods from class `B2Api` (in `Box2dNet.Interop`). Their identifiers are the same as the original Box2D API, on purpose. 
+* Work on your game!
+
+The upside of a thin wrapper is you don't need to learn a different API, it's the same. The downside is you have to deal with the pointers (IntPtr). See section `Dealing with pointers (IntPtr)` in this manual for making that easier. Box2dNet also contains some helper code to minimize the pointer plumbing.
+
+> When you build your game in DEBUG it will use the native debug dll ```box2dd.dll``` and show assertions if you do something wrong. When you build in RELEASE it will use the native production dll ```box2d.dll```.
 
 # License
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-# QUICKSTART
-
-There's no nuget package. Just clone this repo close to your game folder, include the ```box2dnet.csproj``` into your game's .sln and start calling Box2D API functions from static class `Box2dNet.Interop.B2Api`, their identifiers are the same as the original, on purpose. That's basically it.
-
-The main difference with the original API is in dealing with pointers. See section `Dealing with pointers (IntPtr)` in this manual for making that easier.
-
-When you build your game in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
-
-> The debug version ```box2dd.dll``` will quit your game with assertion errors when you did something wrong: this helps for debugging your mistakes.
 
 # What's included?
 
