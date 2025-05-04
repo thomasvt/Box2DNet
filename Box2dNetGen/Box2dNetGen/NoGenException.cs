@@ -1,4 +1,4 @@
-﻿namespace Box2dWrap
+﻿namespace Box2dNetGen
 {
     internal class NoGenException : Exception
     {

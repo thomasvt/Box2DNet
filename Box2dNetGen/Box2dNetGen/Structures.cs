@@ -1,4 +1,4 @@
-﻿namespace Box2dWrap
+﻿namespace Box2dNetGen
 {
     internal record ApiConstant(string Identifier, string Value, string Type, List<string> Comment);
     internal record ApiParameter(string Identifier, string Type);

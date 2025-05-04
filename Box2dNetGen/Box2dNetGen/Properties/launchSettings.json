@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Box2dWrap": {
+    "Box2dNetGen": {
       "commandName": "Project",
       "commandLineArgs": "C:\\repos\\box2d \"C:\\repos\\Box2dNet\\Box2dNet\\Interop\\B2Api.cs\""
     }

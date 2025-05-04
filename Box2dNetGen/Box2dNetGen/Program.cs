@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Box2dWrap
+namespace Box2dNetGen
 {
     internal class Program
     {
@@ -55,7 +55,7 @@ namespace Box2dWrap
         {
             if (args.Length != 2)
             {
-                Console.WriteLine("BOX2DWRAP <box2d repo path> <C# output file path>");
+                Console.WriteLine("BOX2DNETGEN <box2d repo path> <C# output file path>");
                 return;
             }
 

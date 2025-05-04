@@ -138,38 +138,42 @@ Most specific techniques are described in the manual above, but you can also che
 
 # Regenerating the wrapper
 
-Currently, I regenerate every few weeks. The corresponding Win x64 DLLs (debug and release) are included in this repo too, so generally, you won't have to regenerate yourself. 
+Currently, I regenerate every few weeks for the latest version of Box2D. The resulting Win x64 DLLs (debug and release) are included in this repo, so generally, you won't have to regenerate yourself. 
 
 But if you must, perform these 2 steps:
 
-## 1 - Regenerate the C# code
+## 1 - Rebuilding the Box2D DLLs
 
-The C# wrapper code can be regenerated with the companion codegen tool ```Box2dWrap```, also in this repo. 
-It's a naive C parsing + codegen tool, very specific to the Box2D codebase. It was meant for my eyes only, so it's not the easiest code to find your way in. You are warned :)
+> Note: this is for Windows
+
+Make sure you have `cmake` installed; use the .msi from https://cmake.org/download.
+
+* Clone or pull the latest version of `erincatto/box2d`
+* in `CMakeLists.txt` around line 11 add a line `option(BUILD_SHARED_LIBS "Build using shared libraries" ON)` which makes it build to dll instead of statically linked lib
+* run `box2d\create_sln.bat` -> generates a full .NET solution (and .sln) in folder `box2d\build`
+* if it did not open automatically, open the generated ```.\build\box2d.sln``` in Visual Studio
+* **Re**build the `box2d` project (not the entire solution) both in Debug and Release to get both debug dll `box2dd.dll` and production dll `box2d.dll`.
+* Also clone this repo (Box2dNet) 
+* Open `Box2dNet.sln` in Visual Studio and copy the freshly built dlls and pdbs from `box2d\build\bin\Debug` and `box2d\build\bin\Release` into the Box2dNet project and ensure their Copy to Output Directory is set to *copy if newer* in the properties (alt+enter)
+
+## 2 - Regenerate the C# code
+
+The C# wrapper code can be regenerated with the companion codegen tool ```Box2dGen```, also in this repo. 
+It's a naive C parsing + codegen tool, very specific to the Box2D codebase. It was originally meant for my eyes only, so it'll require some digging on your part.
 
 It expects commandline parameters: 
 
-`Box2dWrap.exe <box2d-repo-root> <B2Api.cs-file-output>`
+`Box2dNetGen.exe <box2d-repo-root> <B2Api.cs-file-output>`
 
 Example:
 
-`Box2dWrap.exe C:\repos\box2d "C:\repos\Box2dNet\Box2dNet\Interop\B2Api.cs"`
+`Box2dNetGen.exe C:\repos\box2d "C:\repos\Box2dNet\Box2dNet\Interop\B2Api.cs"`
 
 > Make sure the second parameter points to the existing `B2Api.cs` file in your local Box2dNet repo so it gets overwritten.
 
 The generator gives several warnings about the "exclude-list", which is deliberate, and therefore to be ignored.
 If you get other warnings or errors, though, some of the new C code is incompatible with my tool. You can let me know if I'm not working on it already, or you can give it a shot yourself and send me a PR.
 
-## 2 - Rebuilding the Box2D DLLs
+## 3 - Use Box2dNet
 
-(make sure you have `cmake` installed, (use the .msi from https://cmake.org/download))
-
-* Clone the latest version of ```erincatto/box2d``` onto your PC
-* in ```CMakeLists.txt``` around line 11 add a line ```option(BUILD_SHARED_LIBS "Build using shared libraries" ON)``` which makes it build to dll instead of statically linked lib
-* run ```build.cmd``` -> generates a .sln in ```./build```
-* if it did not open automatically, open the generated ```./build/box2d.sln``` in Visual Studio
-* **Re**build the ```box2d``` project both in Debug and Release to get both debug dll ```box2dd.dll``` and production dll ```box2d.dll```. (no need to build the entire sln, i have seen the other projects give errors even)
-* copy the 2 dlls from ```.\build\bin\Debug``` and ```.\build\bin\Release``` to the Box2dNet project and set to *copy on build*
-
-
-
+Build the now updated Box2dNet solution and use the dll in your game, or directly refer to the Box2dNet project from your game's solution.
