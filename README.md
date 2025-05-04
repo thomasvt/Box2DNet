@@ -19,7 +19,7 @@ You may do whatever you like with the code in this repo. Don't forget to respect
 
 # QUICKSTART
 
-There's no nuget package. Just clone this repo next close to your game folder, include the ```box2dnet.csproj``` into your game's .sln and start calling Box2D API functions according to the Box2D manual from static class `Box2dNet.Interop.B2Api`. That's basically it.
+There's no nuget package. Just clone this repo close to your game folder, include the ```box2dnet.csproj``` into your game's .sln and start calling Box2D API functions according to the Box2D manual from static class `Box2dNet.Interop.B2Api`. That's basically it.
 
 The main difference with the original API is in dealing with pointers. See section `Dealing with pointers (IntPtr)` in this manual for making that easier.
 
