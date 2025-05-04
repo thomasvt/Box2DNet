@@ -294,7 +294,7 @@ public static partial class B2Api
             return cnt;
         }
 
-        private static Regex ParameterRegex = new Regex("@param\\s+(?<identifier>\\S+)\\s+(?<description>.*)");
+        private static Regex ParameterRegex = new("@param\\s+(?<identifier>\\S+)\\s+(?<description>.*)");
 
         private void AppendComment(StringBuilder sb, List<string> comment, string? returnType, Dictionary<string, string>? extraParameterComments = null)
         {
@@ -359,14 +359,24 @@ public static partial class B2Api
             }
             var isPointer = type.EndsWith("*");
             if (isPointer) type = type.TrimEnd('*');
-
+            
             // check intrinsic types:
             if (isPointer)
             {
                 if (type == "char") return "string";
                 if (type == "void") return "IntPtr /* void* */";
-                if (type == "uint8_t") return "IntPtr /* uint8_t* */";
-                if (type == "uint64_t") return "IntPtr /* uint64_t* */";
+                if (isNotArray)
+                {
+                    if (type == "uint8_t") return "ref byte";
+                    if (type == "uint16_t") return "ref ushort";
+                    if (type == "uint32_t") return "ref uint";
+                    if (type == "uint64_t") return "ref ulong";
+                }
+                else
+                {
+                    if (type == "uint8_t") return "IntPtr /* uint8_t* */";
+                    if (type == "uint64_t") return "IntPtr /* uint64_t* */";
+                }
             }
             else
             {
