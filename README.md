@@ -28,7 +28,7 @@ All Box2D API functions are available as C# methods in static class ```Box2dNet.
 NOT included:
 
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
-* b2DynamicTree_X: hard to support these in the codegen tool. But most games won't need these functions.
+* b2DynamicTree_X: too little value for too much effort to support this in my codegen tool. This is the spatial tree used internally by Box2D. I think Erin exposed it for public use because people may want to use it for other purposes (?). But you don't need this for normal Box2D use.
 
 # Dealing with IntPtr
 
