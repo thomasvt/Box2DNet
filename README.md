@@ -29,7 +29,7 @@ When you build your game in DEBUG it will use the native debug dll ```box2dd.dll
 
 # What's included?
 
-All Box2D API functions are available as C# methods in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+All Box2D API functions are available as C# static methods with the exact same identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 
 NOT included:
 
