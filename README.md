@@ -3,7 +3,11 @@
 # Intro
 
 This is a .NET 8.0 PInvoke wrapper for [Box2d v3](https://github.com/erincatto/box2d). 
-The main objective for this wrapper is to be very thin, as if you were working directly with the original C library.
+
+The main objective for this wrapper is to be:
+
+* very thin, as if you were working directly with the original C library.
+* low GC pressure: prevent repeated short lived heap allocs
 
 Next to the generated wrapper, some helper code is provided for simplifying your work in .NET. See below for explanations about these features.
 
@@ -13,11 +17,13 @@ Next to the generated wrapper, some helper code is provided for simplifying your
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-# How to include Box2DNet in your game?
+# QUICKSTART
 
-There's no nuget package. Just clone the repo next to your game folder and include the ```box2dnet.csproj``` into your game solution.
+There's no nuget package. Just clone this repo next close to your game folder, include the ```box2dnet.csproj``` into your game's .sln and start calling Box2D API functions according to the Box2D manual from static class `Box2dNet.Interop.B2Api`. That's basically it.
 
-This will build the Box2DNet project along with your game. When you build in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
+The main difference with the original API is in dealing with pointers. See section `Dealing with pointers (IntPtr)` in this manual for making that easier.
+
+When you build your game in DEBUG it will use the native debug dll ```box2dd.dll```, when you build in RELEASE it will use the native production dll ```box2d.dll```.
 
 > The debug version ```box2dd.dll``` will quit your game with assertion errors when you did something wrong: this helps for debugging your mistakes.
 
@@ -30,7 +36,7 @@ NOT included:
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
 * b2DynamicTree_X: too little value for too much effort to support this in my codegen tool. This is the spatial tree used internally by Box2D. I think Erin exposed it for public use because people may want to use it for other purposes (?). But you don't need this for normal Box2D use.
 
-# Dealing with IntPtr
+# Dealing with pointers (IntPtr)
 
 The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the specific `struct` or `delegate` identifier is lost in C#. 
 To help with this, Box2dNet mentions the original C type in the C# generated comments wherever applicable. Code completion should therefore show this information.
