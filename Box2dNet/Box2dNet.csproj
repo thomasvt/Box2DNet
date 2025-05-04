@@ -25,7 +25,6 @@
 	<ItemGroup>
 		<None Include="box2d.dll" Pack="true" PackagePath="runtimes/win-x64/native" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="box2dd.dll" Pack="true" PackagePath="runtimes/win-x64/native" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="box2dd.pdb" Pack="true" PackagePath="runtimes/win-x64/native" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>
