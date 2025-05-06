@@ -8,6 +8,7 @@ namespace Box2dNet
         /// <summary>
         /// Gets a readonly span of a native array of which you know the length.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe ReadOnlySpan<T> NativeArrayAsSpan<T>(this IntPtr intPtr, int count) where T : struct
         {
             return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(intPtr.ToPointer()), count);

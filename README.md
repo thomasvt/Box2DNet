@@ -45,13 +45,81 @@ I am using Box2dNet for my own game so you can expect me to add more convenience
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
 * b2DynamicTree_X: little value for much effort on my side. This is the spatial tree used internally by Box2D. Erin exposed these because people may want to use the tree elsewhere, but you don't need these functions for normal Box2D use.
 
+# Multi-threading support
+
+Box2dNet comes with .NET integration for the new multi-threaded task system that Box2D uses. 
+
+Simply use `B2Api.b2DefaultWorldDef_WithDotNetTpl()` instead of `B2Api.b2DefaultWorldDef` to create your Box2D world:
+
+``` C#
+var worldDef = useMultiThreading
+    ? B2Api.b2DefaultWorldDef_WithDotNetTpl() // <---- this is all it takes for default multi threading
+    : B2Api.b2DefaultWorldDef();
+
+var b2WorldId = B2Api.b2CreateWorld(worldDef);
+```
+
+Note that multithreading incurs quite some overhead so you only gain net-profit when you simulate a lot of bodies. Measure your specific use cases!
+
+> the 'TPL' in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of .NET's Task framework.
+
 # Dealing with pointers (IntPtr)
 
 The largest down-side of PInvoke wrappers is that many C pointers become `IntPtr` in .NET. Because of this, the type that was there in C of the `struct` or `delegate` is lost and replaced by `IntPtr` in C#. 
 
-To help with this, Box2dNet mentions the original C type in the C# generated comments wherever possible. Code completion should therefore show this information. Worst case, you'll have to look in the sources here on gitHub.
+To help with this, Box2dNet has several helpers to deal with IntPtr, or to remove the need to deal with them at all.
 
-To help you with IntPtrs, the following sections show solutions for most use cases:
+Several situations remain, though, where you need to do it yourself. The following sections show solutions for most of these cases.
+
+The original C type of the pointer is in the generated comments. Code completion should show this information. Worst case, you'll have to look in the sources here on gitHub.
+
+## Reading native arrays from IntPtr (without copying)
+
+Some structs received from native Box2D contain IntPtrs to arrays. Box2dNet provides companion properties called `~AsSpan` for these with which you can read the data directly from native memory, strongly typed (so no allocations for copies or iterators). 
+
+> If this companion property is not there, you can convert the IntPtr yourself to a Span using Box2dNet's convenience method `NativeArrayAsSpan(count)` which is simply what the `~AsSpan` does behind the scenes.
+
+Example: struct `b2ContactEvents` contains an array in field `IntPtr beginEvents` which you can read easily using companion `beginEventsAsSpan`:
+
+``` C#
+var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
+foreach (var @event in **hitEvents.beginEventsAsSpan**)
+{
+    Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
+}
+```
+
+## Pass a reference to a .NET object into native Box2D as IntPtr (eg. UserData)
+
+If you want to pass a .NET object reference into native Box2D, like when tagging a Shape or Body with `userData`, you must pass in an `IntPtr` to the object. But .NET objects are not guaranteed to stay at the same address in memory.
+
+The solution is to allocate a `NativeHandle` for your .NET object and pass *that* to Box2D. Example:
+
+``` C#
+_handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
+
+var shapeDef = B2Api.b2DefaultShapeDef();
+// now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
+shapeDef.userData = _handle;
+var circle = new b2Circle() { radius = 1 };
+var b2ShapeId = B2Api.b2CreateCircleShape(b2BodyId, in shapeDef, in circle);
+```
+
+After this, when Box2D passes the `IntPtr` back to .NET somewhere (eg. through `b2X_GetUserData()`) you can get hold of the corresponding .NET object like this:
+
+``` C#
+var userDataIntPtr = B2Api.b2Shape_GetUserData(shapeId);
+var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
+```
+
+Note that you must keep the `NativeHandle` alive as long as you want the `IntPtr` held by native Box2D to remain valid.
+When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it, like this: 
+
+``` C#
+NativeHandle.Free(_handle);
+```
+
+> A tip to avoid needing to use NativeHandle with UserData: abuse the UserData pointer by setting it to your gameobject's numerical ID (a normal int or long). IntPtr is just a numerical value, it doesn't have to be an actual pointer address: `new IntPtr(entity.Id)` works just fine.
 
 ## Callbacks: setting struct.fields that are callback delegates.
 
@@ -78,73 +146,6 @@ private static IntPtr EnqueueTaskCallback(IntPtr /* b2TaskCallback */ task, int 
     ...
 }
 ```
-
-## Reading native arrays from IntPtr (without copying)
-
-Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies or allocating an iterator.
-
-Example: field `IntPtr b2ContactEvents.beginEvents` shows in its comment that you should read it as an array of `b2ContactBeginTouchEvent`:
-
-``` C#
-var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
-// use helper extension method to efficiently read the native hitEvents array with little code:
-foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTouchEvent>(hitEvents.beginCount))
-{
-    Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
-}
-```
-
-> Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
-
-## Pass a reference to a .NET object into native Box2D as IntPtr (eg. UserData)
-
-If you want to pass a .NET object reference into native Box2D, like when tagging a Shape or Body with `userData`, you must pass in an `IntPtr` to the object. But in .NET objects can get relocated by the memory manager.
-
-To solution is to allocate a `NativeHandle` for your .NET object and pass the handle's `IntPtr` to Box2D instead of a direct pointer to the instance. Example:
-
-``` C#
-_handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
-
-var shapeDef = B2Api.b2DefaultShapeDef();
-// now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
-shapeDef.userData = _handle;
-var circle = new b2Circle() { radius = 1 };
-var b2ShapeId = B2Api.b2CreateCircleShape(b2BodyId, in shapeDef, in circle);
-```
-
-After this, when Box2D passes the `IntPtr` back to .NET somewhere, for instance when you call `b2X_GetUserData()`, you can get hold of the corresponding .NET object like this:
-
-``` C#
-var userDataIntPtr = B2Api.b2Shape_GetUserData(shapeId);
-var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
-```
-
-Note that you must keep the `NativeHandle` alive as long as you want the `IntPtr` held by native Box2D to remain valid.
-When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it, like this: 
-
-``` C#
-NativeHandle.Free(_handle);
-```
-
-> A tip to avoid NativeHandle with UserData: abuse the UserData poointer by setting it to your gameobject's numerical ID (a normal int or long). IntPtr is just a numerical value, it doesn't have to be an actual pointer address: `new IntPtr(entity.Id)` works just fine.
-
-# Multi-threading support
-
-Box2dNet comes with .NET integration for the new multi-threaded task system that Box2D uses. 
-
-Simply use `B2Api.b2DefaultWorldDef_WithDotNetTpl()` instead of `B2Api.b2DefaultWorldDef` to create your Box2D world:
-
-``` C#
-var worldDef = useMultiThreading
-    ? B2Api.b2DefaultWorldDef_WithDotNetTpl() // <---- this is all it takes for default multi threading
-    : B2Api.b2DefaultWorldDef();
-
-var b2WorldId = B2Api.b2CreateWorld(worldDef);
-```
-
-Note that multithreading incurs quite some overhead so you only gain net-profit when you simulate a lot of bodies. Measure your specific use cases!
-
-> the 'TPL' in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of .NET's Task framework.
 
 # Samples
 
