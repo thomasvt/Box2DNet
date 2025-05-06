@@ -31,14 +31,14 @@ You may do whatever you like with the code in this repo. Don't forget to respect
 
 * Virtually all Box2D API functions are available as C# static methods with the original identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 * Ready-to-use wiring for running Box2D's multi threading system in .NET Tasks. See further down this manual.
-* A growing set of quality-of-life helper code. Some included are:
-  * Reading native arrays as `ReadOnlySpan<T>`
+* A growing set of quality-of-life helpers. Some included are:
+  * Reading native arrays from result structs as .NET Spans with the `~AsSpan` sibling property. 
+  * API functions that take delegate pointers (IntPtr) have an overload with strongly typed .NET delegate.
   * A few IEquatable implementations, b2Rot.GetAngle()/FromAngle(x) etc
 
-I am using Box2dNet for my own game so you can expect me to add more convenience methods in the future. Ideas I intend to add:
+TODO:
 
-* Strongly typed `_AsSpan()` methods on Box2D result structs that contain a native array like `b2BodyEvents`.
-* Some way of helping to pass strongly typed delegates to the native side, like in raycasts, or `b2World_SetPreSolveCallback`.
+* Ray and ShapeCast helper functions.
 
 ## **NOT** included:
 
