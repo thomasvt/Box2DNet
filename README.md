@@ -53,33 +53,29 @@ To help with this, Box2dNet mentions the original C type in the C# generated com
 
 To help you with IntPtrs, the following sections show solutions for most use cases:
 
-## Callbacks: passing in delegates to IntPtr parameters
+## Callbacks: setting struct.fields that are callback delegates.
 
-Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
+> As of Box2dNet v3.1.5 all Box2D functions that have callback delegates parameters have a companion overload that takes in the strongly typed delegate. eg. use `b2World_SetPreSolveCallback(b2WorldId worldId, **b2PreSolveFcn fcn**, IntPtr context)`, not `b2World_SetPreSolveCallback(b2WorldId worldId, **IntPtr fcn**, IntPtr context)`
 
-To find out what parameters and return type your callback function should have, you must:
+Some Box2D struct fields are delegate pointers. These are `IntPtr` and must be set to a pointer to a method with the same definition as the delegate requires.
 
-* check the generated comments to find the identifier of the original C type
-* search for that identifier in the B2Api.cs to find the C# delegate definition.
-* create your callback function in C#
-* pass a function pointer retrieves with `Marshal.GetFunctionPointerForDelegate` to the Box2D native side.
+To do this, you must:
 
-Here is an example on how to call `b2World_OverlapCircle` with a callback delegate of type `b2OverlapResultFcn`:
+* check the generated comments to find the identifier of the original C delegate type
+* write or generate a method that matches the delegate
+* assign a function pointer retrieved with `Marshal.GetFunctionPointerForDelegate` to the IntPtr struct field.
+
+Here is an example:
 
 ``` C#
-public void Update()
-{
-    var circle = new b2Circle(Vector2.Zero, 10);
-    var filter = new b2QueryFilter(PhysicsLayer.Query, PhysicsLayer.RobotCore);
-    _list.Clear();
-    B2Api.b2World_OverlapCircle(_b2WorldId, circle, b2Transform.Zero, filter, 
-        Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
+    ...
+    var worldDef = b2DefaultWorldDef();
+    worldDef.enqueueTask = Marshal.GetFunctionPointerForDelegate((b2EnqueueTaskCallback)EnqueueTaskCallback);
 }
 
-private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- delegate 'b2OverlapResultFcn'
+private static IntPtr EnqueueTaskCallback(IntPtr /* b2TaskCallback */ task, int itemCount, int minRange, IntPtr taskContext, IntPtr userContext)
 {
-    _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
-    return true;
+    ...
 }
 ```
 

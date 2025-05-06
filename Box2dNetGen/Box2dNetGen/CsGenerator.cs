@@ -86,12 +86,27 @@ public static partial class B2Api
                 try
                 {
                     var sbI = new StringBuilder();
-                    var parameters = GenerateParameterList(apiFunction.Parameters);
+                    var parameters = GenerateParameterList(apiFunction.Parameters, true, true, out var containsDelegateParameters);
                     sbI.AppendLine();
                     AppendComment(sbI, apiFunction.Comment, apiFunction.ReturnType, apiFunction.Parameters.ToDictionary(p => p.Identifier, p => $"(Original C type: {p.Type})"));
                     sbI.AppendLine($"[DllImport(Box2DLibrary, CallingConvention = CallingConvention.Cdecl)]");
                     sbI.AppendLine(
-                        $"public static extern {MapType(apiFunction.ReturnType, false, CodeDirection.ClrToNative)} {apiFunction.Identifier}({parameters});");
+                        $"public static extern {MapType(apiFunction.ReturnType, false, CodeDirection.ClrToNative, true, out _)} {apiFunction.Identifier}({parameters});");
+
+                    if (containsDelegateParameters)
+                    {
+                        // also generate C# overload that accepts the strongly typed delegate instead of IntPtr.
+                        sbI.AppendLine();
+                        parameters = GenerateParameterList(apiFunction.Parameters, false, false, out _);
+                        var arguments = GenerateArgumentList(apiFunction.Parameters);
+                        AppendComment(sbI, apiFunction.Comment, apiFunction.ReturnType, apiFunction.Parameters.ToDictionary(p => p.Identifier, p => $"(Original C type: {p.Type})"));
+                        sbI.AppendLine(
+                            $"public static {MapType(apiFunction.ReturnType, false, CodeDirection.ClrToNative, true, out _)} {apiFunction.Identifier}({parameters})");
+                        var @return = apiFunction.ReturnType != "void" ? "return " : "";
+                        sbI.AppendLine(
+                            $"{{\r\n    {@return}{apiFunction.Identifier}({arguments});\r\n}}");
+
+                    }
 
                     sb.Append(sbI.ToString()); // commit
                     cnt++;
@@ -153,7 +168,7 @@ public static partial class B2Api
                     {
                         sbI.AppendLine();
                         AppendComment(sbI, field.Comment, field.Type);
-                        var clrType = MapType(field.Type, false, CodeDirection.NativeToClr);
+                        var clrType = MapType(field.Type, false, CodeDirection.NativeToClr, true, out _);
                         if (field.IsFixedArray)
                         {
                             noFieldsAreArray = false;
@@ -235,10 +250,10 @@ public static partial class B2Api
                     sb.AppendLine();
                     AppendComment(sb, apiDelegate.Comment, apiDelegate.ReturnType, apiDelegate.Parameters.ToDictionary(p => p.Identifier, p =>
                         $"(Original C type: {p.Type})"));
-                    var parameters = GenerateParameterList(apiDelegate.Parameters);
+                    var parameters = GenerateParameterList(apiDelegate.Parameters, true, true, out _);
                     sb.AppendLine("  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]");
                     sb.AppendLine(
-                        $"  public delegate {MapType(apiDelegate.ReturnType, false, CodeDirection.ClrToNative)} {apiDelegate.Identifier}({parameters});");
+                        $"  public delegate {MapType(apiDelegate.ReturnType, false, CodeDirection.ClrToNative, true, out _)} {apiDelegate.Identifier}({parameters});");
                     cnt++;
                 }
                 catch (NoGenException e)
@@ -254,19 +269,49 @@ public static partial class B2Api
         /// <summary>
         /// Generates a list of parameters for a function.
         /// </summary>
-        private string GenerateParameterList(List<ApiParameter> parameters)
+        private string GenerateParameterList(List<ApiParameter> parameters, bool includeMarshalAttributes, bool delegateAsIntPtr, out bool containsDelegateParameters)
         {
+            containsDelegateParameters = false;
             var csParameters = new List<string>();
             for (var i = 0; i < parameters.Count; i++)
             {
                 var p = parameters[i];
                 var nextParameterIdentifier = i < parameters.Count - 1 ? parameters[i + 1].Identifier : "";
-                var isArray = p.Type.EndsWith("*") && 
+                var isArray = p.Type.EndsWith("*") &&
                               (p.Identifier.ToLower().EndsWith("array") || nextParameterIdentifier.ToLower().Contains("count") || nextParameterIdentifier.ToLower().Contains("capacity")); // naive but seems to work for box2d: when a pointer parameter is followed by a 'count' parameter, it's an array, else it's a ptr to a single item.
-                var attribute = (p.Type == "bool") ? "[MarshalAs(UnmanagedType.U1)] " : "";
-                csParameters.Add($"{attribute}{MapType(p.Type, !isArray, CodeDirection.ClrToNative)} {p.Identifier}");
+                var attribute = "";
+                if (includeMarshalAttributes)
+                    attribute = (p.Type == "bool") ? "[MarshalAs(UnmanagedType.U1)] " : "";
+                csParameters.Add($"{attribute}{MapType(p.Type, !isArray, CodeDirection.ClrToNative, delegateAsIntPtr, out var isDelegate)} {p.Identifier}");
+                if (isDelegate)
+                    containsDelegateParameters = true;
             }
             return string.Join(", ", csParameters);
+        }
+
+        /// <summary>
+        /// Generates a list of arguments for a function call using the parameter names as arguments.
+        /// </summary>
+        private string GenerateArgumentList(List<ApiParameter> parameters)
+        {
+            var csArguments = new List<string>();
+            for (var i = 0; i < parameters.Count; i++)
+            {
+                var p = parameters[i];
+                var nextParameterIdentifier = i < parameters.Count - 1 ? parameters[i + 1].Identifier : "";
+                var isArray = p.Type.EndsWith("*") &&
+                              (p.Identifier.ToLower().EndsWith("array") || nextParameterIdentifier.ToLower().Contains("count") || nextParameterIdentifier.ToLower().Contains("capacity")); // naive but seems to work for box2d: when a pointer parameter is followed by a 'count' parameter, it's an array, else it's a ptr to a single item.
+                MapType(p.Type, !isArray, CodeDirection.ClrToNative, false, out var isDelegate);
+                if (isDelegate)
+                {
+                    csArguments.Add($"Marshal.GetFunctionPointerForDelegate({p.Identifier})");
+                }
+                else
+                {
+                    csArguments.Add($"{p.Identifier}");
+                }
+            }
+            return string.Join(", ", csArguments);
         }
 
         private int GenerateEnums(List<ApiEnum> enums, StringBuilder sb)
@@ -348,8 +393,9 @@ public static partial class B2Api
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NoGenException"></exception>
-        private string MapType(in string cType, bool isNotArray, CodeDirection codeDirection)
+        private string MapType(in string cType, bool isNotArray, CodeDirection codeDirection, bool returnDelegateAsIntPtr, out bool isDelegate)
         {
+            isDelegate = false;
             var type = RemoveSpaces(cType);
             var isConst = false;
             if (type.StartsWith("const"))
@@ -359,7 +405,7 @@ public static partial class B2Api
             }
             var isPointer = type.EndsWith("*");
             if (isPointer) type = type.TrimEnd('*');
-            
+
             // check intrinsic types:
             if (isPointer)
             {
@@ -405,7 +451,10 @@ public static partial class B2Api
             if (_delegates.TryGetValue(type, out var apiDelegate))
             {
                 if (!isPointer) throw new Exception($"Used type seems to be delegate '{apiDelegate.Identifier}' but it's not a pointer, which is invalid C.");
-                return $"IntPtr";
+                isDelegate = true;
+                if (returnDelegateAsIntPtr)
+                    return $"IntPtr";
+                return type;
             }
 
             // type is a struct?
