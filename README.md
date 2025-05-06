@@ -7,7 +7,7 @@ This is a thin [Box2d v3](https://github.com/erincatto/box2d) wrapper that stays
 The main objective for this wrapper is to be:
 
 * very thin, as if you were working directly with the original C library.
-* performance: prevent data copying, prevent shortlived heap allocations.
+* performant: prevent data copying, prevent heap allocations.
 
 Because of these, Box2dNet gives you full control over the API with the same names/contracts as the original, but with a bit of manual labour here and there.
 
@@ -29,25 +29,21 @@ You may do whatever you like with the code in this repo. Don't forget to respect
 
 # What's included?
 
-* Vitually all Box2D API functions are available as C# static methods with the original identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+* Virtually all Box2D API functions are available as C# static methods with the original identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
 * Ready-to-use wiring for running Box2D's multi threading system in .NET Tasks. See further down this manual.
 * A growing set of quality-of-life helper code. Some included are:
   * Reading native arrays as `ReadOnlySpan<T>`
-  * 
+  * A few IEquatable implementations, b2Rot.GetAngle()/FromAngle(x) etc
 
-> I have been using this lib for my own game since I started with it, so you can expect me to slowly add more convenience methods in the future.
-
-## NOT included:
-
-* the timer functions (b2CreateTimer, ..): use .NET timers :)
-* b2DynamicTree_X: too little value for too much effort to support this in my codegen tool. This is the spatial tree used internally by Box2D. I think Erin exposed it for public use because people may want to use it for other purposes (?). But you don't need this for normal Box2D use.
-
-## Future plans
-
-I'm making a game with this stuff, so I expect to gradually add more quality-of-life helper code.
+> I have been using this lib for my own game since I started with it, so you can expect me to slowly add more convenience methods in the future. Ideas I intent to add:
 
 * Strongly typed `_AsSpan()` methods on Box2D result structs that contain a native array like `b2BodyEvents`.
 * Some way of helping to pass strongly typed delegates to the native side, like in raycasts, or `b2World_SetPreSolveCallback`.
+
+## **NOT** included:
+
+* the timer functions (b2CreateTimer, ..): use .NET timers :)
+* b2DynamicTree_X: little value for much effort on my side. This is the spatial tree used internally by Box2D. Erin exposed these because people may want to use the tree elsewhere, but you don't need these functions for normal Box2D use.
 
 # Dealing with pointers (IntPtr)
 
