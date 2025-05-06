@@ -35,7 +35,7 @@ You may do whatever you like with the code in this repo. Don't forget to respect
   * Reading native arrays as `ReadOnlySpan<T>`
   * A few IEquatable implementations, b2Rot.GetAngle()/FromAngle(x) etc
 
-> I have been using this lib for my own game since I started with it, so you can expect me to slowly add more convenience methods in the future. Ideas I intent to add:
+I am using Box2dNet for my own game so you can expect me to add more convenience methods in the future. Ideas I intend to add:
 
 * Strongly typed `_AsSpan()` methods on Box2D result structs that contain a native array like `b2BodyEvents`.
 * Some way of helping to pass strongly typed delegates to the native side, like in raycasts, or `b2World_SetPreSolveCallback`.
