@@ -7,7 +7,7 @@ This is a thin [Box2d v3](https://github.com/erincatto/box2d) wrapper that stays
 The main objective for this wrapper is to be:
 
 * very thin, as if you were working directly with the original C library.
-* performance: prevent data copying, prevent shortlived heap allocations.
+* performant: prevent data copying, prevent heap allocations.
 
 Because of these, Box2dNet gives you full control over the API with the same names/contracts as the original, but with a bit of manual labour here and there.
 
@@ -27,100 +27,23 @@ The upside of a thin wrapper is you don't need to learn a different API, it's th
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
 
-
 # What's included?
 
-All Box2D API functions are available as C# static methods with the exact same identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+* Virtually all Box2D API functions are available as C# static methods with the original identifier in static class ```Box2dNet.Interop.B2Api```. Original comments are also available, so code completion is quite rich.
+* Ready-to-use wiring for running Box2D's multi threading system in .NET Tasks. See further down this manual.
+* A growing set of quality-of-life helpers. Some included are:
+  * Reading native arrays from result structs as .NET Spans with the `~AsSpan` sibling property. 
+  * API functions that take delegate pointers (IntPtr) have an overload with strongly typed .NET delegate.
+  * A few IEquatable implementations, b2Rot.GetAngle()/FromAngle(x) etc
 
-NOT included:
+TODO:
+
+* Ray and ShapeCast helper functions.
+
+## **NOT** included:
 
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
-* b2DynamicTree_X: too little value for too much effort to support this in my codegen tool. This is the spatial tree used internally by Box2D. I think Erin exposed it for public use because people may want to use it for other purposes (?). But you don't need this for normal Box2D use.
-
-# Dealing with pointers (IntPtr)
-
-The largest down-side of PInvoke wrappers is that all C pointers become `IntPtr` in .NET. Because of this, the helpful identifier of the `struct` or `delegate` is lost in C#. 
-
-To help with this, Box2dNet mentions the original C type in the C# generated comments wherever possible. Code completion should therefore show this information. Worst case, you can GoToSource (F12) on anything and will find the helpful name in /* comment */ just next to `IntPtr` in the wrapper's source.
-
-To help you with IntPtrs, the following sections show solutions for most use cases:
-
-## Callbacks: passing in delegates to IntPtr parameters
-
-Some functions or structs require you to pass in a delegate to a callback method. These are always `IntPtr`, 
-
-To find out what parameters and return type your callback function should have, you must:
-
-* check the generated comments to find the identifier of the original C type
-* search for that identifier in the B2Api.cs to find the C# delegate definition.
-* create your callback function in C#
-* pass a function pointer retrieves with `Marshal.GetFunctionPointerForDelegate` to the Box2D native side.
-
-Here is an example on how to call `b2World_OverlapCircle` with a callback delegate of type `b2OverlapResultFcn`:
-
-``` C#
-public void Update()
-{
-    var circle = new b2Circle(Vector2.Zero, 10);
-    var filter = new b2QueryFilter(PhysicsLayer.Query, PhysicsLayer.RobotCore);
-    _list.Clear();
-    B2Api.b2World_OverlapCircle(_b2WorldId, circle, b2Transform.Zero, filter, 
-        Marshal.GetFunctionPointerForDelegate((b2OverlapResultFcn)QueryCallback), IntPtr.Zero);
-}
-
-private bool QueryCallback(b2ShapeId shapeId, IntPtr context) // <-- delegate 'b2OverlapResultFcn'
-{
-    _list.Add(shapeId); // or get a corresponding .NET object using 'userData' (see samples) or some dictionary.
-    return true;
-}
-```
-
-## Reading native arrays from IntPtr
-
-Some structs received from native Box2D contain arrays. To read those arrays Box2dNet provides convenience method `NativeArrayAsSpan` to loop over the native contents without making temporary copies or allocating an iterator.
-
-Example: field `IntPtr b2ContactEvents.beginEvents` shows in its comment that you should read it as an array of `b2ContactBeginTouchEvent`:
-
-``` C#
-var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
-// use helper extension method to efficiently read the native hitEvents array with little code:
-foreach (var @event in hitEvents.beginEvents.NativeArrayAsSpan<b2ContactBeginTouchEvent>(hitEvents.beginCount))
-{
-    Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
-}
-```
-
-> Note that you must know the size of the array, which is always provided by Box2D in a sibling field.
-
-## Pass a reference to my .NET object into native Box2D as IntPtr
-
-If you want to pass a .NET object reference into native Box2D, like tagging a shape with `userData`, you must also do this using an `IntPtr`.
-
-To do this, you allocate a `NativeHandle` for your .NET object and pass the handle's `IntPtr` to Box2D. Example:
-
-``` C#
-_handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
-
-var shapeDef = B2Api.b2DefaultShapeDef();
-// now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
-shapeDef.userData = _handle;
-var circle = new b2Circle() { radius = 1 };
-var b2ShapeId = B2Api.b2CreateCircleShape(b2BodyId, in shapeDef, in circle);
-```
-
-After this, when Box2D passes the `IntPtr` back to you somewhere, you can get hold of the corresponding .NET object like this:
-
-``` C#
-var userDataIntPtr = B2Api.b2Shape_GetUserData(shapeId);
-var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
-```
-
-Note that you must keep the `NativeHandle` alive as long as you want the `IntPtr` held by native Box2D to remain valid.
-When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it, like this: 
-
-``` C#
-NativeHandle.Free(_handle);
-```
+* b2DynamicTree_X: little value for much effort on my side. This is the spatial tree used internally by Box2D. Erin exposed these because people may want to use the tree elsewhere, but you don't need these functions for normal Box2D use.
 
 # Multi-threading support
 
@@ -136,9 +59,93 @@ var worldDef = useMultiThreading
 var b2WorldId = B2Api.b2CreateWorld(worldDef);
 ```
 
-Note that multithreading incurs a severe performance penalty because of the additional infrastructure. You only gain net-profit from multi threading when you simulate a lot of bodies. Measure your specific use cases.
+Note that multithreading incurs quite some overhead so you only gain net-profit when you simulate a lot of bodies. Measure your specific use cases!
 
-> the TPL in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of the .NET Task framework.
+> the 'TPL' in `b2DefaultWorldDef_WithDotNetTpl` stands for Task Parallel Library, which is the name of .NET's Task framework.
+
+# Dealing with pointers (IntPtr)
+
+The largest down-side of PInvoke wrappers is that many C pointers become `IntPtr` in .NET. Because of this, the type that was there in C of the `struct` or `delegate` is lost and replaced by `IntPtr` in C#. 
+
+To help with this, Box2dNet has several helpers to deal with IntPtr, or to remove the need to deal with them at all.
+
+Several situations remain, though, where you need to do it yourself. The following sections show solutions for most of these cases.
+
+The original C type of the pointer is in the generated comments. Code completion should show this information. Worst case, you'll have to look in the sources here on gitHub.
+
+## Reading native arrays from IntPtr (without copying)
+
+Some structs received from native Box2D contain IntPtrs to arrays. Box2dNet provides companion properties called `~AsSpan` for these with which you can read the data directly from native memory, strongly typed (so no allocations for copies or iterators). 
+
+> If this companion property is not there, you can convert the IntPtr yourself to a Span using Box2dNet's convenience method `NativeArrayAsSpan(count)` which is simply what the `~AsSpan` does behind the scenes.
+
+Example: struct `b2ContactEvents` contains an array in field `IntPtr beginEvents` which you can read easily using companion `beginEventsAsSpan`:
+
+``` C#
+var hitEvents = B2Api.b2World_GetContactEvents(b2WorldId);
+foreach (var @event in **hitEvents.beginEventsAsSpan**)
+{
+    Console.WriteLine($"!!!!!!!   HIT detected between {@event.shapeIdA} and {@event.shapeIdB}");
+}
+```
+
+## Pass a reference to a .NET object into native Box2D as IntPtr (eg. UserData)
+
+If you want to pass a .NET object reference into native Box2D, like when tagging a Shape or Body with `userData`, you must pass in an `IntPtr` to the object. But .NET objects are not guaranteed to stay at the same address in memory.
+
+The solution is to allocate a `NativeHandle` for your .NET object and pass *that* to Box2D. Example:
+
+``` C#
+_handle = NativeHandle.Alloc(ball); // allocate a IntPtr handle for the .NET object and return it as IntPtr.
+
+var shapeDef = B2Api.b2DefaultShapeDef();
+// now tag the Box2d Shape with a handle to our .NET game object so we can always find the .NET game object back:
+shapeDef.userData = _handle;
+var circle = new b2Circle() { radius = 1 };
+var b2ShapeId = B2Api.b2CreateCircleShape(b2BodyId, in shapeDef, in circle);
+```
+
+After this, when Box2D passes the `IntPtr` back to .NET somewhere (eg. through `b2X_GetUserData()`) you can get hold of the corresponding .NET object like this:
+
+``` C#
+var userDataIntPtr = B2Api.b2Shape_GetUserData(shapeId);
+var ball = NativeHandle<Ball>.GetObjectFromIntPtr(userDataIntPtr);
+```
+
+Note that you must keep the `NativeHandle` alive as long as you want the `IntPtr` held by native Box2D to remain valid.
+When you're fully done with it, eg. when the game object is removed from your game, you must not forget to free it, like this: 
+
+``` C#
+NativeHandle.Free(_handle);
+```
+
+> A tip to avoid needing to use NativeHandle with UserData: abuse the UserData pointer by setting it to your gameobject's numerical ID (a normal int or long). IntPtr is just a numerical value, it doesn't have to be an actual pointer address: `new IntPtr(entity.Id)` works just fine.
+
+## Callbacks: setting struct.fields that are callback delegates.
+
+> As of Box2dNet v3.1.5 all Box2D functions that have callback delegates parameters have a companion overload that takes in the strongly typed delegate. eg. use `b2World_SetPreSolveCallback(b2WorldId worldId, **b2PreSolveFcn fcn**, IntPtr context)`, not `b2World_SetPreSolveCallback(b2WorldId worldId, **IntPtr fcn**, IntPtr context)`
+
+Some Box2D struct fields are delegate pointers. These are `IntPtr` and must be set to a pointer to a method with the same definition as the delegate requires.
+
+To do this, you must:
+
+* check the generated comments to find the identifier of the original C delegate type
+* write or generate a method that matches the delegate
+* assign a function pointer retrieved with `Marshal.GetFunctionPointerForDelegate` to the IntPtr struct field.
+
+Here is an example:
+
+``` C#
+    ...
+    var worldDef = b2DefaultWorldDef();
+    worldDef.enqueueTask = Marshal.GetFunctionPointerForDelegate((b2EnqueueTaskCallback)EnqueueTaskCallback);
+}
+
+private static IntPtr EnqueueTaskCallback(IntPtr /* b2TaskCallback */ task, int itemCount, int minRange, IntPtr taskContext, IntPtr userContext)
+{
+    ...
+}
+```
 
 # Samples
 
@@ -146,9 +153,9 @@ Most specific techniques are described in the manual above, but you can also che
 
 # Regenerating the wrapper
 
-Currently, I regenerate every few weeks for the latest version of Box2D. The resulting Win x64 DLLs (debug and release) are included in this repo, so generally, you won't have to regenerate yourself. 
+Normally, you don't need to regenerate the wrapper yourself. I regenerate every few weeks for the latest version of Box2D. The resulting Win x64 DLLs (debug and release) are also included in this repo and in the Nuget package. 
 
-But if you must, perform these 2 steps:
+But if you need to do it yourself anyway, perform these steps:
 
 ## 1 - Rebuilding the Box2D DLLs
 

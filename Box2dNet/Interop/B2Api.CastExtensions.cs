@@ -47,7 +47,7 @@ namespace Box2dNet.Interop
         /// <summary> 
         /// .NET extension method similar to b2World_CastRayClosest but with custom filtering.
         /// </summary>
-        public static b2RayResult b2World_CastRayClosest_DotNet(b2WorldId worldId, Vector2 origin, Vector2 translation, CastRayClosestFilter filter)
+        public static b2RayResult b2World_CastRayClosest_DotNet(in b2WorldId worldId, in Vector2 origin, in Vector2 translation, in CastRayClosestFilter filter)
         {
             // clear previous results in case a single instance is reused for many casts to decrease GC pressure
             filter.ShapeId = default;
