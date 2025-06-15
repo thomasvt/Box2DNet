@@ -192,3 +192,28 @@ If you get other warnings or errors, though, some of the new C code is incompati
 ## 3 - Use Box2dNet
 
 Build the now updated Box2dNet solution and use the dll in your game, or directly refer to the Box2dNet project from your game's solution.
+
+# History
+
+## 2025/06/15: v3.1.7 for Box2D v3.1.1
+
+* Regenerated for updated Box2D 
+* Quite some changes in the Box2D original code since previous time. Box2dNetGen was refactored and adjusted accordingly.
+
+> Box2D started using 3-part version labels messing up my version system where the first two parts are Box2D's version and the third is for Box2dNet changes. I will switch to another system as of Box2D v3.2.0
+
+## 2025/06/15: v3.1.6 for Box2D v3.1
+
+* Small adjustment for Godot. https://github.com/thomasvt/Box2DNet/issues/2
+
+## 2025/05/06: v3.1.5 for Box2D v3.1
+
+* Added Span-based convenience properties like `b2BodyEvents.moveEventsAsSpan`.
+* Box2d API methods that take delegate pointers (IntPtr) were annoying to use as you couldn't see the actual delegate. Box2DNet now also generates an overload for these methods with the actual delegate as parameter. eg. `b2World_CastShape(b2WorldId worldId, in b2ShapeProxy proxy, Vector2 translation, b2QueryFilter filter, __b2CastResultFcn fcn__, IntPtr context)`
+
+## 2025/05/04: v3.1.4 for Box2D v3.1
+
+* Regenerated for updated Box2D
+* Started publishing `Box2dNet` as a nuget package
+
+... older history not logged ...

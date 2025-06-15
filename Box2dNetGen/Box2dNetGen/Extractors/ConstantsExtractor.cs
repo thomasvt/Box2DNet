@@ -11,7 +11,6 @@ namespace Box2dNetGen.Extractors
         /// </summary>
         public static IEnumerable<ApiConstant> ExtractAllPrecompilerDefines(string src)
         {
-            Console.WriteLine("Constants:");
             foreach (Match match in ApiConstantRegex.Matches(src))
             {
                 var identifier = match.Groups["identifier"].Value;
@@ -19,10 +18,8 @@ namespace Box2dNetGen.Extractors
                 var value = match.Groups["value"].Value.Trim();
                 var type = value.Contains('.') ? "float" : "int";
                 if (type == "float" && !value.EndsWith("f")) value += "f";
-                Console.WriteLine(identifier);
                 yield return new ApiConstant(identifier, value, type, ExtractorUtils.GetMultiCaptures(match.Groups["comment"]));
             }
-            Console.WriteLine("end of constants");
         }
     }
 }
