@@ -12,7 +12,9 @@ namespace Box2dNet.Interop
         {
             // Box2D code comments claims using hyperthreading and 'efficiency cores' (Intel)
             // doesn't add much performance because of the shared cache,
-            // so we take an educated guess that physical CPUs on most modern machines = logical processor count / 2
+            // so we take an educated guess that physical CPUs on most modern machines = logical processor count / 2;
+            // (performance tests show that using Environment.ProcessorCount/2 is indeed much faster than Environment.ProcessorCount)
+
             var workerCount = processorCount.HasValue
                 ? int.Min(processorCount.Value, Environment.ProcessorCount)
                 : Environment.ProcessorCount / 2;
@@ -62,7 +64,7 @@ namespace Box2dNet.Interop
         private static async Task ParallelForWithMaxWorkerControl(int toExclusive, int maxWorkerCount, Func<int, int, Task> processItemFunc)
         {
             // Box2D want to know an ID of the worker doing a certain part of the job to partition the internal data for that work.
-            // To my knowledge, .NET does not offer this ability (to know the nr of the worker doing a certain task)
+            // To my knowledge, .NET TPL does not offer this ability (to know the nr of the worker doing a certain task)
 
             // So, we use our own system that supports these requirements:
 
@@ -83,7 +85,7 @@ namespace Box2dNet.Interop
             for (var workerId = 0; workerId < maxWorkerCount; workerId++)
             {
                 var currentWorkerId = workerId; // Capture workerId for closure
-                tasks[workerId] = Task.Factory.StartNew(async () =>
+                tasks[workerId] = Task.Run(async () =>
                 {
                     foreach (var i in collection.GetConsumingEnumerable())
                     {
@@ -92,7 +94,8 @@ namespace Box2dNet.Interop
                 });
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks)
+                .ConfigureAwait(false); // prevents deadlock on Godot
         }
     }
 }

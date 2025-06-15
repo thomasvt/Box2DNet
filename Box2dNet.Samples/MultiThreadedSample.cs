@@ -6,7 +6,7 @@ namespace Box2dNet.Samples
 {
     internal class MultiThreadedSample : ISample
     {
-        private const int BallCount = 2000;
+        private const int BallCount = 10000;
 
         public void Run()
         {
