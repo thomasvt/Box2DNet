@@ -15,7 +15,7 @@ Because of these, Box2dNet gives you full control over the API with the same nam
 
 # QUICKSTART
 
-* Add the [Box2dNet nuget package](https://www.nuget.org/packages/Box2dNet/) to your game's solution.
+* Add the [Box2d v3](https://github.com/erincatto/box2d) to your game's solution.
 * Start calling Box2D API methods from class `B2Api` (in `Box2dNet.Interop`). Their identifiers are the same as the original Box2D API, on purpose. 
 * Work on your game!
 
