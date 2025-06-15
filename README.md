@@ -1,4 +1,8 @@
-> Latest regen from Box2D v3.1: **2025/05/04**
+# Box2dNet
+
+Latest regen: 2025/06/15
+
+[![NuGet](https://img.shields.io/nuget/v/Box2dNet.svg)](https://www.nuget.org/packages/Box2dNet/)
 
 # Intro
 
