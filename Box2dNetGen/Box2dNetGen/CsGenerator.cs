@@ -417,6 +417,7 @@ public static partial class B2Api
                     if (type == "uint16_t") return "ref ushort";
                     if (type == "uint32_t") return "ref uint";
                     if (type == "uint64_t") return "ref ulong";
+                    if (type == "float") return "ref float";
                 }
                 else
                 {

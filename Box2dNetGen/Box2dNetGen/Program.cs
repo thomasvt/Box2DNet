@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using System.Text.RegularExpressions;
+using Box2dNetGen.Extractors;
 
 namespace Box2dNetGen
 {
@@ -17,7 +17,7 @@ namespace Box2dNetGen
             "b2TreeNode",
             "b2DistanceCache",
 
-            "b2DebugDraw" // can't translate the delegate-fields currenlty. Maybe translate and add it to the manually added C# code, DebugDraw rarely changes?
+            "b2DebugDraw" // no support for translating the delegate-fields. I wrote a translation manually in `B2Api.DebugDraw.cs` because this code rarely changes
         };
 
         private static readonly Dictionary<string, Action<ApiStructField>> _structFieldModifiers = new()
@@ -77,11 +77,11 @@ namespace Box2dNetGen
         {
             var src = await ReadSourceAsync(Path.Combine(box2dFolder, "include\\box2d"));
 
-            var constants = ExtractAllConstants(src).ToList();
-            var structs = ExtractAllStructs(src).ToList();
-            var delegates = ExtractAllDelegates(src).ToList();
-            var functions = ExtractAllApiFunctions(src).ToList();
-            var enums = ExtractAlLEnums(src).ToList();
+            var constants = ConstantsExtractor.ExtractAllPrecompilerDefines(src).ToList();
+            var structs = new StructsExtractor(_excludedTypes, _structFieldModifiers).ExtractAllStructs(src).ToList();
+            var delegates = DelegatesExtractor.ExtractAllDelegates(src).ToList();
+            var functions = ApiFunctionsExtractor.ExtractAllApiFunctions(src).ToList();
+            var enums = EnumsExtractor.ExtractAlLEnums(src).ToList();
 
             var generator = new CsGenerator(_extraUsings, _structTypeReplacer, ShouldGenerateInitCtor);
 
@@ -89,158 +89,6 @@ namespace Box2dNetGen
 
             await File.WriteAllTextAsync(csFilename, code);
         }
-
-        private static Regex apiConstantRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*#define\\s+(?<identifier>.*)\\s+(?<value>-?[0-9.]+)");
-
-        private static IEnumerable<ApiConstant> ExtractAllConstants(string src)
-        {
-            foreach (Match match in apiConstantRegex.Matches(src))
-            {
-                var identifier = match.Groups["identifier"].Value;
-                if (identifier.Contains('(')) continue; // skip weird constructions :)
-                var value = match.Groups["value"].Value.Trim();
-                var type = value.Contains('.') ? "float" : "int";
-                if (type == "float" && !value.EndsWith("f")) value += "f";
-                yield return new ApiConstant(identifier, value, type, GetMultiCaptures(match.Groups["comment"]));
-            }
-        }
-
-
-        private static Regex apiDelegateRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*typedef\\s+(?<returnType>\\S+)\\s+(?<identifier>\\S+)\\s*\\((?<parameters>[^)]*)\\);");
-
-        private static IEnumerable<ApiDelegate> ExtractAllDelegates(string src)
-        {
-            foreach (Match match in apiDelegateRegex.Matches(src))
-            {
-                var parameters = ExtractAllParameters(match.Groups["parameters"].Value);
-                yield return new ApiDelegate(match.Groups["identifier"].Value, match.Groups["returnType"].Value, parameters, GetMultiCaptures(match.Groups["comment"]));
-            }
-        }
-
-        private static Regex apiEnumRegex = new("typedef enum (?<identifier>\\S+)\\s*{(?<body>[\\s\\S]*?)}");
-
-        private static IEnumerable<ApiEnum> ExtractAlLEnums(string src)
-        {
-            foreach (Match match in apiEnumRegex.Matches(src))
-            {
-                var body = match.Groups["body"].Value.Trim();
-                var fields = ExtractAllEnumFields(body).ToList();
-                yield return new ApiEnum(match.Groups["identifier"].Value, fields);
-            }
-        }
-
-        private static Regex apiEnumFieldsRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*(?<identifier>\\w+)(?:\\s*=\\s*(?<value>\\w+))?,");
-
-        private static IEnumerable<ApiEnumField> ExtractAllEnumFields(string src)
-        {
-            foreach (Match match in apiEnumFieldsRegex.Matches(src))
-            {
-                var value = match.Groups["value"].Success ? match.Groups["value"].Value : null;
-                yield return new ApiEnumField(match.Groups["identifier"].Value, value, GetMultiCaptures(match.Groups["comment"]));
-            }
-        }
-
-
-        private static Regex apiStructRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*typedef struct (?<identifier>\\S+)\\s*{(?<body>[\\s\\S]*?)\\n\\s*}");
-
-        private static IEnumerable<ApiStruct> ExtractAllStructs(string src)
-        {
-            foreach (Match match in apiStructRegex.Matches(src))
-            {
-                var body = match.Groups["body"].Value;
-                var identifier = match.Groups["identifier"].Value.Trim();
-
-                if (_excludedTypes.Contains(identifier))
-                    continue;
-
-                if (body.Contains("#if"))
-                {
-                    Console.WriteLine($"WARNING: struct {match.Groups["identifier"].Value} is skipped because its body contains precompiler directives which are not supported atm.");
-                    continue;
-                }
-
-                var fields = ExtractAllStructFields(identifier, body).ToList();
-                yield return new ApiStruct(identifier, fields, GetMultiCaptures(match.Groups["comment"]));
-            }
-        }
-
-        private static Regex apiStructFieldsRegex = new("(?:(?:\\/{2,3}(?<comment>[^\\n]*)\\s*)*)\\s*(?<type>\\w[\\w\\s\\*]+)\\s+(?<identifier>[^;]+);\\s*(\\/{3}<(?<comment>[^\\n]*))?", RegexOptions.Multiline);
-        private static Regex fixedArrayRegex = new("(?<identifier>[^\\[]+)\\s*\\[\\s*(?<length>[^\\]]+)\\s*\\]");
-
-        private static IEnumerable<ApiStructField> ExtractAllStructFields(string structIdentifier, string src)
-        {
-            foreach (Match match in apiStructFieldsRegex.Matches(src))
-            {
-                var identifier = match.Groups["identifier"].Value.Trim();
-                var inlineArrayMatch = fixedArrayRegex.Match(identifier);
-                var isFixedArray = false;
-                var arrayLength = string.Empty;
-                if (inlineArrayMatch.Success) // it's a C inline array (fixed-sized array that sits inline in the struct's memory layout)
-                {
-                    isFixedArray = true;
-                    identifier = inlineArrayMatch.Groups["identifier"].Value;
-                    arrayLength = inlineArrayMatch.Groups["length"].Value;
-                }
-                    
-                var type = match.Groups["type"].Value;
-
-                foreach (var subIdentifier in identifier.Split(',').Select(i => i.Trim())) // -> 'int a, b' are actually 2 fields with the same type, so split the identifier and generate all fields
-                {
-                    var field = new ApiStructField(subIdentifier, type, isFixedArray, arrayLength,
-                        GetMultiCaptures(match.Groups["comment"]));
-                    if (_structFieldModifiers.TryGetValue($"{structIdentifier}.{subIdentifier}", out var modifier))
-                        modifier(field);
-
-                    yield return field;
-                }
-            }
-        }
-
-        private static List<string> GetMultiCaptures(Group matchGroup)
-        {
-            return matchGroup.Captures.Select(c => c.Value.Trim()).ToList();
-        }
-
-        private static Regex apiFunctionRegex = new("(?:(?:\\/{3}(?<comment>[^\\n]*)\\s*)*)\\s*B2_API\\s+(?<returnType>\\S+)\\s+(?<identifier>\\S+)\\(\\s*(?<params>[^)]*)\\);");
-
-        private static IEnumerable<ApiFunction> ExtractAllApiFunctions(string src)
-        {
-            foreach (Match match in apiFunctionRegex.Matches(src))
-            {
-                if (!match.Success) continue;
-                var parameters = ExtractAllParameters(match.Groups["params"].Value);
-                yield return new ApiFunction(match.Groups["identifier"].Value, match.Groups["returnType"].Value, parameters, GetMultiCaptures(match.Groups["comment"]));
-            }
-        }
-
-        private static List<ApiParameter> ExtractAllParameters(string src)
-        {
-            var list = new List<ApiParameter>();
-            if (src.Trim() == "void") return list;
-            foreach (var part in src.Split(','))
-            {
-                list.Add(ParseSingleParameter(part.Trim()));
-            }
-
-            return list;
-        }
-
-        static Regex SingleParameterRegex = new("(?<type>.+)\\s+(?<identifier>\\S+)");
-
-
-        private static ApiParameter ParseSingleParameter(string src)
-        {
-            var match = SingleParameterRegex.Match(src);
-            if (!match.Success)
-            {
-                throw new Exception($"Invalid function parameter: '{src}'.");
-            }
-
-            return new ApiParameter(match.Groups["identifier"].Value, match.Groups["type"].Value);
-        }
-
-
-
 
         private static async Task<string> ReadSourceAsync(string folder)
         {
