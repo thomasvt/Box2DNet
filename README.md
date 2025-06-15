@@ -21,8 +21,6 @@ Because of these, Box2dNet gives you full control over the API with the same nam
 
 The upside of a thin wrapper is you don't need to learn a different API, it's the same. The downside is you have to deal with the pointers (IntPtr). See section `Dealing with pointers (IntPtr)` in this manual for making that easier. Box2dNet also contains some helper code to minimize the pointer plumbing.
 
-> Box2D has a debug version that shows assert messages when you do something wrong. Currently, I have no Box2dNet nuget package that includes this debug-version of Box2D. If you get into trouble and want to see these messages, you can stop using the nuget version and simply copy the `Box2dNet` csproj and its content into your game's .sln. This will make it use the debug version of Box2D with the assert messages when you run your game in Debug target.
-
 # License
 
 You may do whatever you like with the code in this repo. Don't forget to respect the [Box2d v3.x](https://github.com/erincatto/box2d) license, though!
@@ -36,14 +34,14 @@ You may do whatever you like with the code in this repo. Don't forget to respect
   * API functions that take delegate pointers (IntPtr) have an overload with strongly typed .NET delegate.
   * A few IEquatable implementations, b2Rot.GetAngle()/FromAngle(x) etc
 
-TODO:
-
-* Ray and ShapeCast helper functions.
-
 ## **NOT** included:
 
 * the timer functions (b2CreateTimer, ..): use .NET timers :)
 * b2DynamicTree_X: little value for much effort on my side. This is the spatial tree used internally by Box2D. Erin exposed these because people may want to use the tree elsewhere, but you don't need these functions for normal Box2D use.
+
+## Where's the DEBUG build of Box2D ?
+
+Box2D has a debug version that shows assert messages when you do something wrong. Currently, there is no Box2dNet nuget package that includes this debug-version of Box2D. If you get into trouble and want to see these messages, you can switch from using the nuget version to simply copying the Box2dNet project (https://github.com/thomasvt/Box2DNet/tree/main/Box2dNet) as a sibling project into your game's .sln. This will make it use the debug version of Box2D with the assert messages when you run your game in Debug target.
 
 # Multi-threading support
 
