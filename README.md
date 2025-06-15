@@ -21,7 +21,7 @@ Because of these, Box2dNet gives you full control over the API with the same nam
 
 The upside of a thin wrapper is you don't need to learn a different API, it's the same. The downside is you have to deal with the pointers (IntPtr). See section `Dealing with pointers (IntPtr)` in this manual for making that easier. Box2dNet also contains some helper code to minimize the pointer plumbing.
 
-> When you build your game in DEBUG it will use the native debug dll ```box2dd.dll``` and show assertions if you do something wrong. When you build in RELEASE it will use the native production dll ```box2d.dll```.
+> Box2D has a debug version that shows assert messages when you do something wrong. Currently, I have no Box2dNet nuget package that includes this debug-version of Box2D. If you get into trouble and want to see these messages, you can stop using the nuget version and simply copy the `Box2dNet` csproj and its content into your game's .sln. This will make it use the debug version of Box2D with the assert messages when you run your game in Debug target.
 
 # License
 
