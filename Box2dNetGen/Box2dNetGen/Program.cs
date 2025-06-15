@@ -31,7 +31,7 @@ namespace Box2dNetGen
         };
 
         /// <summary>
-        /// A list of C structs for which we don't generate the initializer ctors (ctors with parameters to set the struct's fields)
+        /// Logic that decides whether we generate the convenience initializer ctors (ctors with parameters to set all the struct's fields)
         /// </summary>
         private static bool ShouldGenerateInitCtor(string structIdentifier)
         {
