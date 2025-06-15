@@ -1,8 +1,8 @@
 # Box2dNet
 
-This is a thin [Box2d v3](https://github.com/erincatto/box2d) wrapper that stays true to the original API. 
+[![NuGet](https://img.shields.io/nuget/v/Box2dNet.svg)](https://www.nuget.org/packages/Box2dNet/)
 
-Latest regen: 2025/06/15 [![NuGet](https://img.shields.io/nuget/v/Box2dNet.svg)](https://www.nuget.org/packages/Box2dNet/)
+This is a thin [Box2d v3](https://github.com/erincatto/box2d) wrapper that stays true to the original API. 
 
 The main objective for this wrapper is to be:
 
