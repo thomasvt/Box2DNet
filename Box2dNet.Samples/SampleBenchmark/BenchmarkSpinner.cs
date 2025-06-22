@@ -16,9 +16,9 @@ namespace Box2dNet.Samples.SampleBenchmark
 
         public override CameraSettings InitialCameraSettings => new(new(0.0f, 32.0f), 42f);
 
-        public override void Step()
+        public override void Step(Box2dMeshDrawer meshDrawer)
         {
-            base.Step();
+            base.Step(meshDrawer);
 
             if (m_stepCount == 1000 && false)
             {

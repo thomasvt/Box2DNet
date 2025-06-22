@@ -72,7 +72,7 @@ namespace Box2dNet.Samples
         //    m_textLine = 26;
         //}
 
-        public virtual void Step()
+        public virtual void Step(Box2dMeshDrawer meshDrawer)
         {
             float timeStep = m_context.hertz > 0.0f ? 1.0f / m_context.hertz : 0.0f;
 
@@ -120,7 +120,7 @@ namespace Box2dNet.Samples
                 // m_taskCount = 0;
             }
 
-            Box2dMeshDrawer.DrawWorld(m_worldId);
+            meshDrawer.DrawWorld(m_worldId);
 
             if (timeStep > 0.0f)
             {

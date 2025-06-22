@@ -15,15 +15,9 @@ namespace Box2dNet.Samples
         /// <summary>
         /// Triangle mesh to be rendered. This hooks into a copied part of my game engine to draw the Box2D outputs as triangles for easy rendering in any rendering system (eg. MonoGame).
         /// </summary>
-        public readonly static Mesh Mesh = new();
+        public readonly Mesh Mesh = new();
 
-        static Box2dMeshDrawer()
-        {
-            //m_showUI = true;
-            //m_debugDraw = new();
-        }
-
-        public static void DrawPolygon(IntPtr vertices, int vertexCount, b2HexColor color, IntPtr context)
+        public void DrawPolygon(IntPtr vertices, int vertexCount, b2HexColor color, IntPtr context)
         {
             var verticesSpan = vertices.NativeArrayAsSpan<Vector2>(vertexCount);
             var p = Polygon8.FromSpan(verticesSpan);
@@ -31,7 +25,7 @@ namespace Box2dNet.Samples
 
         }
 
-        public static void DrawSolidPolygon(b2Transform transform, IntPtr vertices, int vertexCount, float radius, b2HexColor color, IntPtr context)
+        public void DrawSolidPolygon(b2Transform transform, IntPtr vertices, int vertexCount, float radius, b2HexColor color, IntPtr context)
         {
             // todo support radius visualization.
 
@@ -42,19 +36,19 @@ namespace Box2dNet.Samples
             Mesh.PolygonEdges(p, PxWorldSize, 0, color.ToDotNet());
         }
 
-        public static void DrawCircle(Vector2 center, float radius, b2HexColor color, IntPtr context)
+        public void DrawCircle(Vector2 center, float radius, b2HexColor color, IntPtr context)
         {
             Mesh.CircleEdges(center, radius, 10, PxWorldSize, 0, color.ToDotNet());
         }
 
-        public static void DrawSolidCircle(b2Transform transform, float radius, b2HexColor color, IntPtr context)
+        public void DrawSolidCircle(b2Transform transform, float radius, b2HexColor color, IntPtr context)
         {
             Mesh.Circle(transform.p, radius, 10, 0, color.ToDotNet(128));
             Mesh.CircleEdges(transform.p, radius, 10, PxWorldSize, 0, color.ToDotNet());
             Mesh.Line(transform.p, transform.p + new Vector2(transform.q.c, transform.q.s) * radius, PxWorldSize, 0, color.ToDotNet());
         }
 
-        public static void DrawSolidCapsule(Vector2 p1, Vector2 p2, float radius, b2HexColor color, IntPtr context)
+        public void DrawSolidCapsule(Vector2 p1, Vector2 p2, float radius, b2HexColor color, IntPtr context)
         {
             var c = color.ToDotNet();
             Mesh.Capsule(p1, p2, radius, 0, color.ToDotNet(128));
@@ -62,23 +56,23 @@ namespace Box2dNet.Samples
             Mesh.Line(p1, p2, PxWorldSize, 0, c);
         }
 
-        public static void DrawSegment(Vector2 p1, Vector2 p2, b2HexColor color, IntPtr context)
+        public void DrawSegment(Vector2 p1, Vector2 p2, b2HexColor color, IntPtr context)
         {
             Mesh.Line(p1, p2, PxWorldSize, 0, color.ToDotNet());
         }
 
-        public static void DrawTransform(b2Transform transform, IntPtr context)
+        public void DrawTransform(b2Transform transform, IntPtr context)
         { }
 
-        public static void DrawPoint(Vector2 p, float size, b2HexColor color, IntPtr context)
+        public void DrawPoint(Vector2 p, float size, b2HexColor color, IntPtr context)
         {
             Mesh.Square(p, size * PxWorldSize, 0, color.ToDotNet());
         }
 
-        public static void DrawString(Vector2 p, IntPtr s, b2HexColor color, IntPtr context)
+        public void DrawString(Vector2 p, IntPtr s, b2HexColor color, IntPtr context)
         { }
 
-        public static void DrawWorld(b2WorldId worldId)
+        public void DrawWorld(b2WorldId worldId)
         {
             b2AABB bounds = new(new(-float.MinValue, -float.MaxValue), new(float.MinValue, float.MaxValue));
 
@@ -117,7 +111,7 @@ namespace Box2dNet.Samples
             NativeHandle.Free(meshHandle);
         }
 
-        public static void Clear()
+        public void Clear()
         {
             Mesh.Clear();
         }

@@ -12,8 +12,9 @@ namespace Box2dNet.Samples
         private readonly GraphicsDeviceManager _gdm;
         private readonly OrthographicCamera _camera = new();
         private XnaImmediateRenderer? _renderer;
+        private Box2dMeshDrawer _meshDrawer = new();
         // --- END MonoGame bridging services
-        
+
         private SampleContext s_context = new();
         private Sample? s_sample;
 
@@ -52,8 +53,8 @@ namespace Box2dNet.Samples
         {
             base.Update(gameTime);
 
-            Box2dMeshDrawer.Clear();
-            s_sample?.Step(); // steps and draws to the triangle Mesh.
+            _meshDrawer.Clear();
+            s_sample?.Step(_meshDrawer); // steps and draws to the triangle Mesh.
 
             TargetElapsedTime = TimeSpan.FromSeconds(1 / s_context.hertz);
         }
@@ -67,8 +68,7 @@ namespace Box2dNet.Samples
             if (s_sample != null)
             {
                 _renderer!.Begin(_camera, false, false, false);
-                var m = Box2dMeshDrawer.Mesh;
-                _renderer.Draw(Matrix4x4.Identity, Box2dMeshDrawer.Mesh);
+                _renderer.Draw(Matrix4x4.Identity, _meshDrawer.Mesh);
                 _renderer.End();
             }
         }
