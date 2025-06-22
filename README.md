@@ -147,7 +147,10 @@ private static IntPtr EnqueueTaskCallback(IntPtr /* b2TaskCallback */ task, int 
 
 # Samples
 
-Most specific techniques are described in the manual above, but you can also check out the `Box2dNet.Samples` console app in this repo to see working code that gets you started on common usecases like detecting collisions.
+There are now two folders with samples:
+
+* `Box2dNet.OldSamples` are console-based samples I initially made to teach using Box2dNet, showing technical solutions to get around certain PInvoke annoyances.
+* `Box2dNet.Samples` contains the original graphical Box2D samples app re-created in .NET using Box2dNet and MonoGame. This initiative is still very limited and contains only one sample. I intend to add more because it's the best way to test Box2dNet's completeness.
 
 # Regenerating the wrapper
 
