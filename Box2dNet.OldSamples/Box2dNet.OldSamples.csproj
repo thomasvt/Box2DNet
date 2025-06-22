@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Box2dNet\Box2dNet.csproj" />
   </ItemGroup>
 

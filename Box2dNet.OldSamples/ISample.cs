@@ -1,4 +1,4 @@
-﻿namespace Box2dNet.Samples;
+﻿namespace Box2dNet.OldSamples;
 
 internal interface ISample
 {
