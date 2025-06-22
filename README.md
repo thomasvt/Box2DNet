@@ -196,6 +196,11 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
+## 2025/06/22: v3.1.8 for Box2D v3.1.1
+
+* Started with the Box2D samples app rewritten in .NET + MonoGame: contains 1 sample now
+* B2DebugDraw struct bug fixed.
+
 ## 2025/06/15: v3.1.7 for Box2D v3.1.1
 
 * Regenerated for updated Box2D 
