@@ -75,14 +75,16 @@ namespace Box2dNetGen
 
         private static async Task BuildCsWrapperAsync(string box2dFolder, string csFilename)
         {
-            var src = await ReadSourceAsync(Path.Combine(box2dFolder, "include\\box2d"));
+            var src = await ReadSourceFiles(Path.Combine(box2dFolder, "include\\box2d"));
 
+            Console.WriteLine("\n\nParsing C ...");
             var constants = ConstantsExtractor.ExtractAllPrecompilerDefines(src).ToList();
             var structs = new StructsExtractor(_excludedTypes, _structFieldModifiers).ExtractAllStructs(src).ToList();
             var delegates = DelegatesExtractor.ExtractAllDelegates(src).ToList();
             var functions = ApiFunctionsExtractor.ExtractAllApiFunctions(src).ToList();
             var enums = EnumsExtractor.ExtractAlLEnums(src).ToList();
 
+            Console.WriteLine("\n\nGenerating C# ...");
             var generator = new CsGenerator(_extraUsings, _structTypeReplacer, ShouldGenerateInitCtor);
 
             var code = generator.GenerateCsCode(constants, structs, delegates, functions, enums, _excludedTypes);
@@ -90,11 +92,12 @@ namespace Box2dNetGen
             await File.WriteAllTextAsync(csFilename, code);
         }
 
-        private static async Task<string> ReadSourceAsync(string folder)
+        private static async Task<string> ReadSourceFiles(string folder)
         {
             var sb = new StringBuilder();
             foreach (var file in Directory.GetFiles(folder, "*.h"))
             {
+                Console.WriteLine($"Reading '{Path.GetFileName(file)}'...");
                 sb.AppendLine(await File.ReadAllTextAsync(file));
             }
             return sb.ToString();

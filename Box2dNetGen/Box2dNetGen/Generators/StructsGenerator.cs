@@ -12,8 +12,6 @@ namespace Box2dNetGen.Generators
             var cnt = 0;
             foreach (var apiStruct in structs)
             {
-                if (apiStruct.Identifier.Equals("b2DistanceJointDef", StringComparison.CurrentCultureIgnoreCase)) Debugger.Break();
-
                 try
                 {
                     var sbI = new StringBuilder();
