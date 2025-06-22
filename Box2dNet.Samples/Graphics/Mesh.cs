@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using Box2dNet.Interop;
 
 namespace Box2dNet.Samples.Graphics
 {
@@ -42,6 +43,15 @@ namespace Box2dNet.Samples.Graphics
             return this;
         }
 
+
+        public Mesh QuadEdges(in Vector2 a, in Vector2 b, in Vector2 c, in Vector2 d, in float halfWidth, in float z, Color color)
+        {
+            Line(a, b, halfWidth, z, color);
+            Line(b, c, halfWidth, z, color);
+            Line(c, d, halfWidth, z, color);
+            Line(d, a, halfWidth, z, color);
+            return this;
+        }
         public Mesh Polygon(in Polygon8 polygon, in float z, in Color color)
         {
             if (polygon.Count < 3) throw new Exception("Polygons must have at least 3 corners.");
@@ -76,6 +86,111 @@ namespace Box2dNet.Samples.Graphics
             var latWidth = longWidth.CrossLeft();
 
             return Quad(a - longWidth + latWidth, b + longWidth + latWidth, b + longWidth - latWidth, a - longWidth - latWidth, z, color);
+        }
+
+        public Mesh Circle(in Vector2 center, in float radius, in int segmentCount, in float z, in Color color)
+        {
+            var angleStep = MathF.Tau / segmentCount;
+
+            var p0 = center;
+            for (var i = 0; i < segmentCount; i++)
+            {
+                var a1 = i * angleStep;
+                var p1 = new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
+
+                var a2 = a1 + angleStep;
+                var p2 = new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * radius;
+
+                Triangle(new Triangle2(p0, p0+p1, p0+p2), z, color);
+            }
+            return this;
+        }
+
+        public Mesh CirclePie(in Vector2 center, in float radius, in float offsetRadians, in float pieSizeRadians, in int segmentCount, in float z, in Color color)
+        {
+            var angleStep = pieSizeRadians / segmentCount;
+
+            var p0 = center;
+            for (var i = 0; i < segmentCount; i++)
+            {
+                var a1 = offsetRadians + i * angleStep;
+                var p1 = new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
+
+                var a2 = a1 + angleStep;
+                var p2 = new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * radius;
+
+                Triangle(new Triangle2(p0, p0 + p2, p0 + p1), z, color);
+            }
+            return this;
+        }
+
+        public Mesh CirclePieEdges(in Vector2 center, in float radius, in float offsetRadians, in float pieSizeRadians, in int segmentCount, float halfWidth, in float z, in Color color)
+        {
+            var angleStep = pieSizeRadians / segmentCount;
+
+            var p0 = center;
+            for (var i = 0; i < segmentCount; i++)
+            {
+                var a1 = offsetRadians + i * angleStep;
+                var p1 = new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
+
+                var a2 = a1 + angleStep;
+                var p2 = new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * radius;
+
+                Line(p0 + p1, p0 + p2, halfWidth, z, color);
+            }
+            return this;
+        }
+
+        public Mesh CircleEdges(in Vector2 center, in float radius, in int segmentCount, in float halfLineWidth, in float z, in Color color)
+        {
+            var angleStep = MathF.Tau / segmentCount;
+
+            for (var i = 0; i < segmentCount; i++)
+            {
+                var a1 = i * angleStep;
+                var p1 = new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
+
+                var a2 = a1 + angleStep;
+                var p2 = new Vector2(MathF.Cos(a2), MathF.Sin(a2)) * radius;
+
+                Line(center + p1, center + p2, halfLineWidth, z, color);
+            }
+            return this;
+        }
+
+        public Mesh Square(in Vector2 p, in float size, in float z, in Color color)
+        {
+            return Quad(p + new Vector2(-size, -size), p + new Vector2(-size, size), p + new Vector2(size, size), p + new Vector2(size, -size), z, color);
+        }
+
+        public Mesh Capsule(in Vector2 a, in Vector2 b, in float radius, in float z, in Color color)
+        {
+            var lengthNorm = (b - a).NormalizeOrZero();
+            var crossNorm = lengthNorm.CrossRight();
+
+            var cross = crossNorm * radius;
+
+            var crossAngle = MathF.Atan2(crossNorm.Y, crossNorm.X);
+
+            return Quad(a - cross, b - cross, b + cross, a + cross, z, color)
+                .CirclePie(b, radius, crossAngle, MathF.PI, 3, z, color)
+                .CirclePie(a, radius, crossAngle + MathF.PI, MathF.PI, 3, z, color);
+        }
+
+        public Mesh CapsuleEdges(in Vector2 a, in Vector2 b, in float radius, in float halfWidth, in float z, in Color color)
+        {
+            var lengthNorm = (b - a).NormalizeOrZero();
+            var crossNorm = lengthNorm.CrossRight();
+
+            var cross = crossNorm * radius;
+
+            var crossAngle = MathF.Atan2(crossNorm.Y, crossNorm.X);
+
+            return Line(a - cross, b - cross, halfWidth, z, color)
+                .Line(b + cross, a + cross, halfWidth, z, color)
+                .CirclePie(b, radius, crossAngle, MathF.PI, 3, z, color)
+                .CirclePie(a, radius, crossAngle + MathF.PI, MathF.PI, 3, z, color);
         }
     }
 }

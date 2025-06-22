@@ -121,7 +121,7 @@ namespace Box2dNet.Samples.Graphics
         /// <summary>
         /// Returns a new translated polygon.
         /// </summary>
-        public Polygon8 Tranlate(in Vector2 translation)
+        public Polygon8 Translate(in Vector2 translation)
         {
             // this assumes polygons are always at least 3 corners, but it doesn't break when it's less.
             var result = new Polygon8

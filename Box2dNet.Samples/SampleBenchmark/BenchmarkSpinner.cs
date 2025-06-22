@@ -121,7 +121,10 @@ namespace Box2dNet.Samples.SampleBenchmark
                 shapeDef.material.restitution = 0.1f;
                 shapeDef.density = 0.25f;
 
-                int bodyCount = BENCHMARK_DEBUG ? 499 : 3038;
+                int bodyCount = 3038;
+#if DEBUG
+                bodyCount = 499;
+#endif
 
                 float x = -24.0f, y = 2.0f;
                 for (int i = 0; i < bodyCount; ++i)

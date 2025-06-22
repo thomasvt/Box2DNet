@@ -218,7 +218,15 @@ namespace Box2dNet.Interop
         /// <summary>
         /// Returns a transform with zero translation and zero rotation.
         /// </summary>
-        public static b2Transform Zero = new b2Transform(Vector2.Zero, b2Rot.Zero);
+        public static b2Transform Zero = new(Vector2.Zero, b2Rot.Zero);
+
+        /// <summary>
+        /// Convert this Box2D transform to an equivalent .NET transform matrix.
+        /// </summary>
+        public Matrix3x2 ToMatrix3x2()
+        {
+            return new Matrix3x2(q.c, q.s, -q.s, q.c, p.X, p.Y);
+        }
     }
 
     public partial struct b2Polygon

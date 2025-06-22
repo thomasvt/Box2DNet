@@ -32,7 +32,7 @@ namespace Box2dNet.Samples.Graphics
         {
             _camera = camera;
 
-            graphicsDevice.BlendState = additiveBlend ? BlendState.Additive : BlendState.Opaque;
+            graphicsDevice.BlendState = additiveBlend ? BlendState.Additive : BlendState.NonPremultiplied;
             graphicsDevice.DepthStencilState = enableDepthBuffer ? DepthStencilState.Default : DepthStencilState.None;
             graphicsDevice.RasterizerState = cullCounterClockwise ? RasterizerState.CullCounterClockwise : RasterizerState.CullNone;
 

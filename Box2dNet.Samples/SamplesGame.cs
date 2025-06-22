@@ -2,7 +2,6 @@
 using Box2dNet.Samples.Graphics;
 using Box2dNet.Samples.SampleBenchmark;
 using Microsoft.Xna.Framework;
-using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
 
 namespace Box2dNet.Samples
@@ -62,7 +61,7 @@ namespace Box2dNet.Samples
         {
             base.Draw(gameTime);
 
-            GraphicsDevice.Clear(Color.DarkBlue);
+            GraphicsDevice.Clear(Color.FromNonPremultiplied(50,50,50,255));
 
             if (s_sample != null)
             {
@@ -90,7 +89,7 @@ namespace Box2dNet.Samples
             var cameraSettings = s_sample.InitialCameraSettings;
             _camera.FarPlane = 20;
             _camera.NearPlane = 0;
-            _camera.Position = cameraSettings.Center.ToVector3(-10);
+            _camera.Position = cameraSettings.Center.ToVector3(10);
             _camera.LookAt(cameraSettings.Center.ToVector3(0), Vector3.UnitY);
             _camera.Origin = OriginPosition.Center;
             _camera.ViewHeight = cameraSettings.Zoom * 2;
