@@ -8,8 +8,6 @@
         {}
 
         // struct GLFWwindow* window = nullptr;
-        public Camera camera;
-        public Draw draw;
         public float uiScale = 1.0f;
         public float hertz = 60.0f;
         public int subStepCount = 4;

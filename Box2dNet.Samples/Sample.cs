@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using Box2dNet.Interop;
-using Microsoft.Xna.Framework.Input;
 
 namespace Box2dNet.Samples
 {
     internal class Sample : IDisposable
     {
+
+        public bool BENCHMARK_DEBUG = false;
+
         public Sample(SampleContext context)
         {
             m_context = context;
-            m_camera = context.camera;
-            m_draw = context.draw;
+            // m_camera = context.camera;
+            // m_draw = context.draw;
 
             //m_scheduler = new enki::TaskScheduler;
             //m_scheduler->Initialize(m_context->workerCount);
@@ -44,6 +41,8 @@ namespace Box2dNet.Samples
             // TestMathCpp();
         }
 
+        public virtual CameraSettings InitialCameraSettings => new(Vector2.Zero, 200);
+
         public void Dispose()
         {
             // By deleting the world, we delete the bomb, mouse joint, etc.
@@ -52,7 +51,7 @@ namespace Box2dNet.Samples
 
         public void CreateWorld()
         {
-            if (m_worldId == default)
+            if (m_worldId != default)
             {
                 B2Api.b2DestroyWorld(m_worldId);
                 m_worldId = default;
@@ -67,11 +66,11 @@ namespace Box2dNet.Samples
             m_worldId = B2Api.b2CreateWorld(worldDef);
         }
 
-        public void DrawTitle(string title)
-        {
-            m_context.draw.DrawString(5, 5, title);
-            m_textLine = 26;
-        }
+        //public void DrawTitle(string title)
+        //{
+        //    m_context.draw.DrawString(new (5,5), title);
+        //    m_textLine = 26;
+        //}
 
         public virtual void Step()
         {
@@ -88,28 +87,28 @@ namespace Box2dNet.Samples
                     timeStep = 0.0f;
                 }
 
-                if (m_context.draw.m_showUI)
-                {
-                    DrawTextLine("****PAUSED****");
-                    m_textLine += m_textIncrement;
-                }
+                //if (m_context.draw.m_showUI)
+                //{
+                //    DrawTextLine("****PAUSED****");
+                //    m_textLine += m_textIncrement;
+                //}
             }
 
-            m_context.draw.m_debugDraw.drawingBounds = m_context.camera.GetViewBounds();
-            m_context.draw.m_debugDraw.useDrawingBounds = m_context.useCameraBounds;
-            m_context.draw.m_debugDraw.drawShapes = m_context.drawShapes;
-            m_context.draw.m_debugDraw.drawJoints = m_context.drawJoints;
-            m_context.draw.m_debugDraw.drawJointExtras = m_context.drawJointExtras;
-            m_context.draw.m_debugDraw.drawBounds = m_context.drawBounds;
-            m_context.draw.m_debugDraw.drawMass = m_context.drawMass;
-            m_context.draw.m_debugDraw.drawBodyNames = m_context.drawBodyNames;
-            m_context.draw.m_debugDraw.drawContacts = m_context.drawContactPoints;
-            m_context.draw.m_debugDraw.drawGraphColors = m_context.drawGraphColors;
-            m_context.draw.m_debugDraw.drawContactNormals = m_context.drawContactNormals;
-            m_context.draw.m_debugDraw.drawContactImpulses = m_context.drawContactImpulses;
-            m_context.draw.m_debugDraw.drawContactFeatures = m_context.drawContactFeatures;
-            m_context.draw.m_debugDraw.drawFrictionImpulses = m_context.drawFrictionImpulses;
-            m_context.draw.m_debugDraw.drawIslands = m_context.drawIslands;
+            //m_context.draw.m_debugDraw.drawingBounds = m_context.camera.GetViewBounds();
+            //m_context.draw.m_debugDraw.useDrawingBounds = m_context.useCameraBounds;
+            //m_context.draw.m_debugDraw.drawShapes = m_context.drawShapes;
+            //m_context.draw.m_debugDraw.drawJoints = m_context.drawJoints;
+            //m_context.draw.m_debugDraw.drawJointExtras = m_context.drawJointExtras;
+            //m_context.draw.m_debugDraw.drawBounds = m_context.drawBounds;
+            //m_context.draw.m_debugDraw.drawMass = m_context.drawMass;
+            //m_context.draw.m_debugDraw.drawBodyNames = m_context.drawBodyNames;
+            //m_context.draw.m_debugDraw.drawContacts = m_context.drawContactPoints;
+            //m_context.draw.m_debugDraw.drawGraphColors = m_context.drawGraphColors;
+            //m_context.draw.m_debugDraw.drawContactNormals = m_context.drawContactNormals;
+            //m_context.draw.m_debugDraw.drawContactImpulses = m_context.drawContactImpulses;
+            //m_context.draw.m_debugDraw.drawContactFeatures = m_context.drawContactFeatures;
+            //m_context.draw.m_debugDraw.drawFrictionImpulses = m_context.drawFrictionImpulses;
+            //m_context.draw.m_debugDraw.drawIslands = m_context.drawIslands;
 
             B2Api.b2World_EnableSleeping(m_worldId, m_context.enableSleep);
             B2Api.b2World_EnableWarmStarting(m_worldId, m_context.enableWarmStarting);
@@ -121,7 +120,7 @@ namespace Box2dNet.Samples
                 // m_taskCount = 0;
             }
 
-            B2Api.b2World_Draw(m_worldId, ref m_context.draw.m_debugDraw);
+            Box2dMeshDrawer.DrawWorld(m_worldId);
 
             if (timeStep > 0.0f)
             {
@@ -546,8 +545,6 @@ namespace Box2dNet.Samples
 #endif
 
         public SampleContext m_context;
-        public Camera m_camera;
-        public Draw m_draw;
 
         // enki::TaskScheduler* m_scheduler;
         // class SampleTask* m_tasks;

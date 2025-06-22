@@ -3,7 +3,7 @@
 namespace Box2dNet;
 
 /// <summary>
-/// Helper methods to manage handles for CLR objects so you can pass then as IntPtr to native code and back.
+/// Helper methods to manage GCHandles for CLR objects so you can pass them as IntPtr to native code and back.
 /// </summary>
 public static class NativeHandle
 {

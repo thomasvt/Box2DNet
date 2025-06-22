@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using Box2dNet.Interop;
 
 namespace Box2dNet.Samples.SampleBenchmark
@@ -7,19 +8,15 @@ namespace Box2dNet.Samples.SampleBenchmark
     {
         public BenchmarkSpinner(SampleContext context) : base(context)
         {
-            if (m_context.restart == false)
-            {
-                m_context.camera.m_center = new(0.0f, 32.0f);
-                m_context.camera.m_zoom = 42.0f;
-            }
-
             // b2_toiCalls = 0;
             // b2_toiHitCount = 0;
 
             CreateSpinner(m_worldId);
         }
 
-        void Step()
+        public override CameraSettings InitialCameraSettings => new(new(0.0f, 32.0f), 42f);
+
+        public override void Step()
         {
             base.Step();
 
@@ -34,7 +31,7 @@ namespace Box2dNet.Samples.SampleBenchmark
             // DrawTextLine( "toi calls, hits = %d, %d", b2_toiCalls, b2_toiHitCount );
         }
 
-        static Sample Create(SampleContext context)
+        public static Sample Create(SampleContext context)
         {
             return new BenchmarkSpinner(context);
         }
@@ -43,7 +40,7 @@ namespace Box2dNet.Samples.SampleBenchmark
 
         struct SpinnerData
         {
-            b2JointId spinnerId;
+            public b2JointId spinnerId;
         }
 
         SpinnerData g_spinnerData;
@@ -52,110 +49,115 @@ namespace Box2dNet.Samples.SampleBenchmark
         {
             b2BodyId groundId;
             {
-                b2BodyDef bodyDef = B2Api.b2DefaultBodyDef();
-                groundId = B2Api.b2CreateBody(worldId, &bodyDef);
+                var bodyDef = B2Api.b2DefaultBodyDef();
+                groundId = B2Api.b2CreateBody(worldId, bodyDef);
 
-                Vector2[] points = new Vector2[SPINNER_POINT_COUNT];
+                var points = new Vector2[SPINNER_POINT_COUNT];
 
-                b2Rot q = B2Api.b2MakeRot(-2.0f * B2_PI / SPINNER_POINT_COUNT);
-                b2Vec2 p = { 40.0f, 0.0f };
+                var q = Matrix3x2.CreateRotation(-2.0f * B2Api.B2_PI / SPINNER_POINT_COUNT);
+                Vector2 p = new(40.0f, 0.0f);
                 for (int i = 0; i < SPINNER_POINT_COUNT; ++i)
                 {
-                    points[i] = (b2Vec2){ p.x, p.y + 32.0f }
-                    ;
-                    p = b2RotateVector(q, p);
+                    points[i] = new(p.X, p.Y + 32.0f);
+                    p = Vector2.Transform(p, q);
                 }
 
-                b2SurfaceMaterial material = { 0 };
+                b2SurfaceMaterial material = default;
                 material.friction = 0.1f;
-
-                b2ChainDef chainDef = b2DefaultChainDef();
-                chainDef.points = points;
-                chainDef.count = SPINNER_POINT_COUNT;
-                chainDef.isLoop = true;
-                chainDef.materials = &material;
-                chainDef.materialCount = 1;
-
-                b2CreateChain(groundId, &chainDef);
+                var materialHandle = GCHandle.Alloc(material, GCHandleType.Pinned);
+                var pointsHandle = GCHandle.Alloc(points, GCHandleType.Pinned);
+                try
+                {
+                    b2ChainDef chainDef = B2Api.b2DefaultChainDef();
+                    chainDef.points = pointsHandle.AddrOfPinnedObject();
+                    chainDef.count = SPINNER_POINT_COUNT;
+                    chainDef.isLoop = true;
+                    chainDef.materials = materialHandle.AddrOfPinnedObject();
+                    chainDef.materialCount = 1;
+                    B2Api.b2CreateChain(groundId, chainDef);
+                }
+                finally
+                {
+                    materialHandle.Free();
+                    pointsHandle.Free();
+                }
             }
 
             {
-                b2BodyDef bodyDef = b2DefaultBodyDef();
-                bodyDef.type = b2_dynamicBody;
-                bodyDef.position = (b2Vec2){ 0.0, 12.0f }
-                ;
+                b2BodyDef bodyDef = B2Api.b2DefaultBodyDef();
+                bodyDef.type = b2BodyType.b2_dynamicBody;
+                bodyDef.position = new(0.0f, 12.0f);
                 bodyDef.enableSleep = false;
 
-                b2BodyId spinnerId = b2CreateBody(worldId, &bodyDef);
+                b2BodyId spinnerId = B2Api.b2CreateBody(worldId, bodyDef);
 
-                b2Polygon box = b2MakeRoundedBox(0.4f, 20.0f, 0.2f);
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                b2Polygon box = B2Api.b2MakeRoundedBox(0.4f, 20.0f, 0.2f);
+                b2ShapeDef shapeDef = B2Api.b2DefaultShapeDef();
                 shapeDef.material.friction = 0.0f;
-                b2CreatePolygonShape(spinnerId, &shapeDef, &box);
+                B2Api.b2CreatePolygonShape(spinnerId, shapeDef, box);
 
                 float motorSpeed = 5.0f;
                 float maxMotorTorque = 40000.0f;
-                b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
-                jointDef.base.bodyIdA = groundId;
-                jointDef.base.bodyIdB = spinnerId;
-                jointDef.base.localFrameA.p = bodyDef.position;
+                b2RevoluteJointDef jointDef = B2Api.b2DefaultRevoluteJointDef();
+                jointDef.@base.bodyIdA = groundId;
+                jointDef.@base.bodyIdB = spinnerId;
+                jointDef.@base.localFrameA.p = bodyDef.position;
                 jointDef.enableMotor = true;
                 jointDef.motorSpeed = motorSpeed;
                 jointDef.maxMotorTorque = maxMotorTorque;
 
-                g_spinnerData.spinnerId = b2CreateRevoluteJoint(worldId, &jointDef);
+                g_spinnerData.spinnerId = B2Api.b2CreateRevoluteJoint(worldId, jointDef);
             }
 
-            b2Capsule capsule = { { -0.25f, 0.0f }, { 0.25f, 0.0f }, 0.25f };
-            b2Circle circle = { { 0.0f, 0.0f }, 0.35f };
-            b2Polygon square = b2MakeSquare(0.35f);
-
-            b2BodyDef bodyDef = b2DefaultBodyDef();
-            bodyDef.type = b2_dynamicBody;
-            b2ShapeDef shapeDef = b2DefaultShapeDef();
-            shapeDef.material.friction = 0.1f;
-            shapeDef.material.restitution = 0.1f;
-            shapeDef.density = 0.25f;
-
-            int bodyCount = BENCHMARK_DEBUG ? 499 : 3038;
-
-            float x = -24.0f, y = 2.0f;
-            for (int i = 0; i < bodyCount; ++i)
             {
-                bodyDef.position = (b2Vec2){ x, y }
-                ;
-                b2BodyId bodyId = b2CreateBody(worldId, &bodyDef);
+                b2Capsule capsule = new b2Capsule(new(-0.25f, 0.0f), new(0.25f, 0.0f), 0.25f);
+                b2Circle circle = new b2Circle(new(0.0f, 0.0f), 0.35f);
+                b2Polygon square = B2Api.b2MakeSquare(0.35f);
 
-                int remainder = i % 3;
-                if (remainder == 0)
-                {
-                    b2CreateCapsuleShape(bodyId, &shapeDef, &capsule);
-                }
-                else if (remainder == 1)
-                {
-                    b2CreateCircleShape(bodyId, &shapeDef, &circle);
-                }
-                else if (remainder == 2)
-                {
-                    b2CreatePolygonShape(bodyId, &shapeDef, &square);
-                }
+                b2BodyDef bodyDef = B2Api.b2DefaultBodyDef();
+                bodyDef.type = b2BodyType.b2_dynamicBody;
+                b2ShapeDef shapeDef = B2Api.b2DefaultShapeDef();
+                shapeDef.material.friction = 0.1f;
+                shapeDef.material.restitution = 0.1f;
+                shapeDef.density = 0.25f;
 
-                x += 1.0f;
+                int bodyCount = BENCHMARK_DEBUG ? 499 : 3038;
 
-                if (x > 24.0f)
+                float x = -24.0f, y = 2.0f;
+                for (int i = 0; i < bodyCount; ++i)
                 {
-                    x = -24.0f;
-                    y += 1.0f;
+                    bodyDef.position = new(x, y);
+
+                    b2BodyId bodyId = B2Api.b2CreateBody(worldId, bodyDef);
+
+                    int remainder = i % 3;
+                    if (remainder == 0)
+                    {
+                        B2Api.b2CreateCapsuleShape(bodyId, shapeDef, capsule);
+                    }
+                    else if (remainder == 1)
+                    {
+                        B2Api.b2CreateCircleShape(bodyId, shapeDef, circle);
+                    }
+                    else if (remainder == 2)
+                    {
+                        B2Api.b2CreatePolygonShape(bodyId, shapeDef, square);
+                    }
+
+                    x += 1.0f;
+
+                    if (x > 24.0f)
+                    {
+                        x = -24.0f;
+                        y += 1.0f;
+                    }
                 }
             }
         }
 
         float StepSpinner(b2WorldId worldId, int stepCount)
         {
-            (void)worldId;
-            (void)stepCount;
-
-            return b2RevoluteJoint_GetAngle(g_spinnerData.spinnerId);
+            return B2Api.b2RevoluteJoint_GetAngle(g_spinnerData.spinnerId);
         }
     }
 }
