@@ -7,6 +7,8 @@ namespace Box2dNet.Samples
     {
         public void Run()
         {
+            Console.WriteLine("This sample implements B2DebugDraw to write a few 'draw' calls to the console and then executes the draw on a simple B2World:\n");
+
             // create world
             var worldDef = B2Api.b2DefaultWorldDef();
             worldDef.gravity = new(0, -9.81f);

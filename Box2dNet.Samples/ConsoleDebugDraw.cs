@@ -23,7 +23,7 @@ namespace Box2dNet.Samples
             debugDraw.drawShapes = true;
             debugDraw.drawJoints = true;
             debugDraw.drawJointExtras = true;
-            debugDraw.drawAABBs = true;
+            debugDraw.drawBounds = true;
             debugDraw.drawMass = true;
             debugDraw.drawBodyNames = true;
             debugDraw.drawContacts = true;
@@ -31,6 +31,8 @@ namespace Box2dNet.Samples
             debugDraw.drawContactNormals = true;
             debugDraw.drawContactImpulses = true;
             debugDraw.drawFrictionImpulses = true;
+            debugDraw.drawContactFeatures = true;
+            debugDraw.drawIslands = true;
 
             return debugDraw;
         }

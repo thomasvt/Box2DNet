@@ -18,38 +18,38 @@ namespace Box2dNet.Interop
 
     /// <param name="center">(Original C type: b2Vec2)</param>
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawCircle(Vector2 center, float radius, b2HexColor color, IntPtr context);
 
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawSolidCircle(b2Transform transform, float radius, b2HexColor color, IntPtr context);
 
     /// <param name="p1">(Original C type: b2Vec2)</param>
     /// /// <param name="p2">(Original C type: b2Vec2)</param>
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawSolidCapsule(Vector2 p1, Vector2 p2, float radius, b2HexColor color, IntPtr context);
 
     /// <param name="p1">(Original C type: b2Vec2)</param>
     /// /// <param name="p2">(Original C type: b2Vec2)</param>
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawSegment(Vector2 p1, Vector2 p2, b2HexColor color, IntPtr context);
 
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawTransform(b2Transform transform, IntPtr context);
 
     /// <param name="p">(Original C type: b2Vec2)</param>
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawPoint(Vector2 p, float size, b2HexColor color, IntPtr context);
 
     /// <param name="p">(Original C type: b2Vec2)</param>
     /// <param name="s">(Original C type: const char*)</param>
     /// <param name="context">(Original C type: void*)</param>
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void DrawString(Vector2 p, IntPtr s, b2HexColor color, IntPtr context);
 
     /// This struct holds callbacks you can implement to draw a Box2D world.
@@ -139,7 +139,7 @@ namespace Box2dNet.Interop
         /// <summary>
         /// Option to draw the bounding boxes for shapes
         /// </summary>
-        public bool drawAABBs;
+        public bool drawBounds;
 
         /// <summary>
         /// Option to draw the mass and center of mass of dynamic bodies
@@ -172,9 +172,19 @@ namespace Box2dNet.Interop
         public bool drawContactImpulses;
 
         /// <summary>
+        /// Option to draw contact feature ids
+        /// </summary>
+        public bool drawContactFeatures;
+
+        /// <summary>
         /// Option to draw contact friction impulses
         /// </summary>
         public bool drawFrictionImpulses;
+
+        /// <summary>
+        /// Option to draw islands as bounding boxes
+        /// </summary>
+        public bool drawIslands;
 
         /// <summary>
         /// User context that is passed as an argument to drawing callback functions
@@ -189,7 +199,7 @@ namespace Box2dNet.Interop
         /// Call this to draw shapes and other debug draw data
         /// </summary>
         /// <param name="draw">(Original C type: b2DebugDraw*)</param>
-        [DllImport(Box2DLibrary, CallingConvention = CallingConvention.Cdecl)] 
+        [DllImport(Box2DLibrary, CallingConvention = CallingConvention.Cdecl)]
         public static extern void b2World_Draw(b2WorldId worldId, ref b2DebugDraw draw);
 
         /// Use this to initialize your drawing interface. This allows you to implement a sub-set
