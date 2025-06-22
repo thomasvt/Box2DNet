@@ -13,7 +13,7 @@ namespace Box2dNet.Samples.Graphics
             LightingEnabled = false
         };
         private ICamera? _camera;
-        private readonly List<VertexPositionColor> _xnaVerticesBuffer = new();
+        private readonly BBList<VertexPositionColor> _xnaVerticesBuffer = new();
 
         /// <summary>
         /// Clears screen, depth buffer and stencil buffer.
@@ -60,8 +60,7 @@ namespace Box2dNet.Samples.Graphics
                 _xnaVerticesBuffer.Add(new VertexPositionColor(triangle.B.ToXna(), color));
                 _xnaVerticesBuffer.Add(new VertexPositionColor(triangle.C.ToXna(), color));
             }
-            _effect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, _xnaVerticesBuffer.ToArray() // don't do this for a game! reuse a single buffer.
-                , 0, _xnaVerticesBuffer.Count / 3);
+            _effect.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, _xnaVerticesBuffer.InternalArray, 0, _xnaVerticesBuffer.Count / 3);
         }
 
 
@@ -74,6 +73,7 @@ namespace Box2dNet.Samples.Graphics
 
         public void Dispose()
         {
+            _xnaVerticesBuffer.Dispose();
             _effect.Dispose();
         }
     }

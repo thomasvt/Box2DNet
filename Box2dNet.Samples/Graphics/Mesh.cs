@@ -178,7 +178,7 @@ namespace Box2dNet.Samples.Graphics
                 .CirclePie(a, radius, crossAngle + MathF.PI, MathF.PI, 3, z, color);
         }
 
-        public Mesh CapsuleEdges(in Vector2 a, in Vector2 b, in float radius, in float halfWidth, in float z, in Color color)
+        public Mesh CapsuleEdges(in Vector2 a, in Vector2 b, in float radius, in float halfWidth, in float z, in int segmentCount, in Color color)
         {
             var lengthNorm = (b - a).NormalizeOrZero();
             var crossNorm = lengthNorm.CrossRight();
@@ -189,8 +189,8 @@ namespace Box2dNet.Samples.Graphics
 
             return Line(a - cross, b - cross, halfWidth, z, color)
                 .Line(b + cross, a + cross, halfWidth, z, color)
-                .CirclePie(b, radius, crossAngle, MathF.PI, 3, z, color)
-                .CirclePie(a, radius, crossAngle + MathF.PI, MathF.PI, 3, z, color);
+                .CirclePieEdges(b, radius, crossAngle, MathF.PI, segmentCount, halfWidth, z, color)
+                .CirclePieEdges(a, radius, crossAngle + MathF.PI, MathF.PI, segmentCount, halfWidth, z, color);
         }
     }
 }

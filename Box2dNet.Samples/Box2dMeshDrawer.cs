@@ -10,7 +10,7 @@ namespace Box2dNet.Samples
     /// </summary>
     internal class Box2dMeshDrawer
     {
-        private const float PxWorldSize = 0.05f;
+        private const float PxWorldSize = 0.04f;
 
         /// <summary>
         /// Triangle mesh to be rendered. This hooks into a copied part of my game engine to draw the Box2D outputs as triangles for easy rendering in any rendering system (eg. MonoGame).
@@ -44,20 +44,22 @@ namespace Box2dNet.Samples
 
         public static void DrawCircle(Vector2 center, float radius, b2HexColor color, IntPtr context)
         {
-            Mesh.CircleEdges(center, radius, 8, PxWorldSize, 0, color.ToDotNet());
+            Mesh.CircleEdges(center, radius, 10, PxWorldSize, 0, color.ToDotNet());
         }
 
         public static void DrawSolidCircle(b2Transform transform, float radius, b2HexColor color, IntPtr context)
         {
-            Mesh.Circle(transform.p, radius, 8, 0, color.ToDotNet(128));
-            Mesh.CircleEdges(transform.p, radius, 8, PxWorldSize, 0, color.ToDotNet());
+            Mesh.Circle(transform.p, radius, 10, 0, color.ToDotNet(128));
+            Mesh.CircleEdges(transform.p, radius, 10, PxWorldSize, 0, color.ToDotNet());
             Mesh.Line(transform.p, transform.p + new Vector2(transform.q.c, transform.q.s) * radius, PxWorldSize, 0, color.ToDotNet());
         }
 
         public static void DrawSolidCapsule(Vector2 p1, Vector2 p2, float radius, b2HexColor color, IntPtr context)
         {
+            var c = color.ToDotNet();
             Mesh.Capsule(p1, p2, radius, 0, color.ToDotNet(128));
-            Mesh.CapsuleEdges(p1, p2, radius, PxWorldSize, 0, color.ToDotNet());
+            Mesh.CapsuleEdges(p1, p2, radius, PxWorldSize, 0, 5, color.ToDotNet());
+            Mesh.Line(p1, p2, PxWorldSize, 0, c);
         }
 
         public static void DrawSegment(Vector2 p1, Vector2 p2, b2HexColor color, IntPtr context)

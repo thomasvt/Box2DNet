@@ -11,7 +11,7 @@ namespace Box2dNet.Samples
         // --- BEGIN MonoGame bridging services:
         private readonly GraphicsDeviceManager _gdm;
         private readonly OrthographicCamera _camera = new();
-        private IImmediateRenderer? _renderer;
+        private XnaImmediateRenderer? _renderer;
         // --- END MonoGame bridging services
         
         private SampleContext s_context = new();
@@ -22,7 +22,8 @@ namespace Box2dNet.Samples
             _gdm = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 1920,
-                PreferredBackBufferHeight = 1080
+                PreferredBackBufferHeight = 1080,
+                //PreferMultiSampling = true // this has been messing up colors on MonoGame OpenGL for ages, so we make do without AA
             };
 
             IsFixedTimeStep = true;
@@ -93,6 +94,12 @@ namespace Box2dNet.Samples
             _camera.LookAt(cameraSettings.Center.ToVector3(0), Vector3.UnitY);
             _camera.Origin = OriginPosition.Center;
             _camera.ViewHeight = cameraSettings.Zoom * 2;
+        }
+
+        protected override void UnloadContent()
+        {
+            _renderer!.Dispose();
+            base.UnloadContent();
         }
     }
 }
