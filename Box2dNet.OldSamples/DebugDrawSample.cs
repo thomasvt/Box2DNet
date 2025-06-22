@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Box2dNet.Interop;
 
-namespace Box2dNet.Samples
+namespace Box2dNet.OldSamples
 {
     internal class DebugDrawSample : ISample
     {

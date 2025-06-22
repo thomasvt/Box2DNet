@@ -1,5 +1,6 @@
 ﻿// ReSharper disable InconsistentNaming
 
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -111,85 +112,52 @@ namespace Box2dNet.Interop
         /// </summary>
         public IntPtr DrawString;
 
-        /// <summary>
         /// Bounds to use if restricting drawing to a rectangular region
-        /// </summary>
         public b2AABB drawingBounds;
 
-        /// <summary>
         /// Option to restrict drawing to a rectangular region. May suffer from unstable depth sorting.
-        /// </summary>
-        public bool useDrawingBounds;
+        [MarshalAs(UnmanagedType.U1)] public bool useDrawingBounds;
 
-        /// <summary>
         /// Option to draw shapes
-        /// </summary>
-        public bool drawShapes;
+        [MarshalAs(UnmanagedType.U1)] public bool drawShapes;
 
-        /// <summary>
         /// Option to draw joints
-        /// </summary>
-        public bool drawJoints;
+        [MarshalAs(UnmanagedType.U1)] public bool drawJoints;
 
-        /// <summary>
         /// Option to draw additional information for joints
-        /// </summary>
-        public bool drawJointExtras;
+        [MarshalAs(UnmanagedType.U1)] public bool drawJointExtras;
 
-        /// <summary>
         /// Option to draw the bounding boxes for shapes
-        /// </summary>
-        public bool drawBounds;
+        [MarshalAs(UnmanagedType.U1)] public bool drawBounds;
 
-        /// <summary>
         /// Option to draw the mass and center of mass of dynamic bodies
-        /// </summary>
-        public bool drawMass;
+        [MarshalAs(UnmanagedType.U1)] public bool drawMass;
 
-        /// <summary>
         /// Option to draw body names
-        /// </summary>
-        public bool drawBodyNames;
+        [MarshalAs(UnmanagedType.U1)] public bool drawBodyNames;
 
-        /// <summary>
         /// Option to draw contact points
-        /// </summary>
-        public bool drawContacts;
+        [MarshalAs(UnmanagedType.U1)] public bool drawContacts;
 
-        /// <summary>
         /// Option to visualize the graph coloring used for contacts and joints
-        /// </summary>
-        public bool drawGraphColors;
+        [MarshalAs(UnmanagedType.U1)] public bool drawGraphColors;
 
-        /// <summary>
         /// Option to draw contact normals
-        /// </summary>
-        public bool drawContactNormals;
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactNormals;
 
-        /// <summary>
         /// Option to draw contact normal impulses
-        /// </summary>
-        public bool drawContactImpulses;
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactImpulses;
 
-        /// <summary>
         /// Option to draw contact feature ids
-        /// </summary>
-        public bool drawContactFeatures;
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactFeatures;
 
-        /// <summary>
         /// Option to draw contact friction impulses
-        /// </summary>
-        public bool drawFrictionImpulses;
+        [MarshalAs(UnmanagedType.U1)] public bool drawFrictionImpulses;
 
-        /// <summary>
         /// Option to draw islands as bounding boxes
-        /// </summary>
-        public bool drawIslands;
+        [MarshalAs(UnmanagedType.U1)] public bool drawIslands;
 
-        /// <summary>
         /// User context that is passed as an argument to drawing callback functions
-        /// (Original C type: void*)
-        /// </summary>
         public IntPtr context;
     }
 
@@ -208,5 +176,14 @@ namespace Box2dNet.Interop
         public static extern b2DebugDraw b2DefaultDebugDraw();
     }
 
-
+    public static class ColorExtensions
+    {
+        /// <summary>
+        /// Returns the Box2D color as a .NET framework <see cref="Color"/>.
+        /// </summary>
+        public static Color ToDotNet(this b2HexColor color, byte alpha = 255)
+        {
+            return Color.FromArgb((int)(((uint)color) | (uint)(alpha << 24)));
+        }
+    }
 }

@@ -5,7 +5,9 @@ VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Box2dNet", "Box2dNet\Box2dNet.csproj", "{1AC43035-4239-4CF8-92A4-1FF0B11BE9C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Box2dNet.Samples", "Box2dNet.Samples\Box2dNet.Samples.csproj", "{F4E3871F-7354-4CDD-8AE7-90A304E994F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Box2dNet.OldSamples", "Box2dNet.OldSamples\Box2dNet.OldSamples.csproj", "{F4E3871F-7354-4CDD-8AE7-90A304E994F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Box2dNet.Samples", "Box2dNet.Samples\Box2dNet.Samples.csproj", "{8D47C4B0-2E39-41AC-B918-2B2FED0E9EE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{F4E3871F-7354-4CDD-8AE7-90A304E994F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4E3871F-7354-4CDD-8AE7-90A304E994F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4E3871F-7354-4CDD-8AE7-90A304E994F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D47C4B0-2E39-41AC-B918-2B2FED0E9EE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D47C4B0-2E39-41AC-B918-2B2FED0E9EE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D47C4B0-2E39-41AC-B918-2B2FED0E9EE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D47C4B0-2E39-41AC-B918-2B2FED0E9EE9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
