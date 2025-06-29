@@ -196,6 +196,10 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
+## 2025/06/29: v3.1.8.2 for Box2D v3.1.1
+
+* Regenerated for latest commits on Box2D
+
 ## 2025/06/22: v3.1.8 for Box2D v3.1.1
 
 * Started with the Box2D samples app rewritten in .NET + MonoGame: contains 1 sample now

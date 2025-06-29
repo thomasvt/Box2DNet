@@ -58,10 +58,6 @@ namespace Box2dNet.Samples
             }
 
             var worldDef = m_context.workerCount > 1 ? B2Api.b2DefaultWorldDef_WithDotNetTpl(m_context.workerCount) : B2Api.b2DefaultWorldDef();
-            //worldDef.workerCount = m_context->workerCount; // we don't set parallellism here, because b2DefaultWorldDef_WithDotNetTpl() configures this.
-            //worldDef.enqueueTask = EnqueueTask;
-            //worldDef.finishTask = FinishTask;
-            //worldDef.userTaskContext = this;
             worldDef.enableSleep = m_context.enableSleep;
             m_worldId = B2Api.b2CreateWorld(worldDef);
         }
