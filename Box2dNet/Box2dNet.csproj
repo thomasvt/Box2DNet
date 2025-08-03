@@ -14,7 +14,7 @@
 		<RepositoryUrl>https://github.com/thomasvt/Box2D3Net</RepositoryUrl>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn> <!-- suppress warnings for missing docs -->
-		<Version>3.1.8.3</Version>
+		<Version>3.1.8.5</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
