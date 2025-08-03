@@ -19,7 +19,6 @@ namespace Box2dNet.OldSamples
             debugDraw.DrawPoint = Marshal.GetFunctionPointerForDelegate((DrawPoint)DrawPoint);
             debugDraw.DrawString = Marshal.GetFunctionPointerForDelegate((DrawString)DrawString);
 
-            debugDraw.useDrawingBounds = false;
             debugDraw.drawShapes = true;
             debugDraw.drawJoints = true;
             debugDraw.drawJointExtras = true;
