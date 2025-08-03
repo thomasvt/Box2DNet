@@ -196,9 +196,10 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
-## 2025/08/03: v3.1.8.3 for Box2D v3.1.1
+## 2025/08/03: v3.1.8.5 for Box2D v3.1.1
 
 * Regenerated for latest commits on Box2D
+* Messed up a few version numbers...
 
 ## 2025/06/29: v3.1.8.2 for Box2D v3.1.1
 
