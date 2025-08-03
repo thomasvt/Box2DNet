@@ -74,7 +74,7 @@ namespace Box2dNet.Samples
 
         public void DrawWorld(b2WorldId worldId)
         {
-            b2AABB bounds = new(new(-float.MinValue, -float.MaxValue), new(float.MinValue, float.MaxValue));
+            b2AABB bounds = new(new(float.MinValue, float.MinValue), new(float.MaxValue, float.MaxValue));
 
             var meshHandle = NativeHandle.Alloc(Mesh);
 
@@ -90,7 +90,7 @@ namespace Box2dNet.Samples
                 DrawPoint = Marshal.GetFunctionPointerForDelegate((DrawPoint)DrawPoint),
                 DrawString = Marshal.GetFunctionPointerForDelegate((DrawString)DrawString),
                 drawingBounds = bounds,
-                useDrawingBounds = false,
+                // useDrawingBounds = false,
                 drawShapes = true,
                 drawJoints = true,
                 drawJointExtras = false,

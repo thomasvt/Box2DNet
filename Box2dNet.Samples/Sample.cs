@@ -155,7 +155,6 @@ namespace Box2dNet.Samples
                 m_maxProfile.pairs = MathF.Max(m_maxProfile.pairs, p.pairs);
                 m_maxProfile.collide = MathF.Max(m_maxProfile.collide, p.collide);
                 m_maxProfile.solve = MathF.Max(m_maxProfile.solve, p.solve);
-                m_maxProfile.mergeIslands = MathF.Max(m_maxProfile.mergeIslands, p.mergeIslands);
                 m_maxProfile.prepareStages = MathF.Max(m_maxProfile.prepareStages, p.prepareStages);
                 m_maxProfile.solveConstraints = MathF.Max(m_maxProfile.solveConstraints, p.solveConstraints);
                 m_maxProfile.prepareConstraints = MathF.Max(m_maxProfile.prepareConstraints, p.prepareConstraints);
@@ -179,7 +178,6 @@ namespace Box2dNet.Samples
                 m_totalProfile.pairs += p.pairs;
                 m_totalProfile.collide += p.collide;
                 m_totalProfile.solve += p.solve;
-                m_totalProfile.mergeIslands += p.mergeIslands;
                 m_totalProfile.prepareStages += p.prepareStages;
                 m_totalProfile.solveConstraints += p.solveConstraints;
                 m_totalProfile.prepareConstraints += p.prepareConstraints;
@@ -212,7 +210,6 @@ namespace Box2dNet.Samples
                     aveProfile.pairs = scale * m_totalProfile.pairs;
                     aveProfile.collide = scale * m_totalProfile.collide;
                     aveProfile.solve = scale * m_totalProfile.solve;
-                    aveProfile.mergeIslands = scale * m_totalProfile.mergeIslands;
                     aveProfile.prepareStages = scale * m_totalProfile.prepareStages;
                     aveProfile.solveConstraints = scale * m_totalProfile.solveConstraints;
                     aveProfile.prepareConstraints = scale * m_totalProfile.prepareConstraints;

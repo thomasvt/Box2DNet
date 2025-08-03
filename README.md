@@ -196,6 +196,10 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
+## 2025/08/03: v3.1.8.3 for Box2D v3.1.1
+
+* Regenerated for latest commits on Box2D
+
 ## 2025/06/29: v3.1.8.2 for Box2D v3.1.1
 
 * Regenerated for latest commits on Box2D
@@ -210,7 +214,7 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 * Regenerated for updated Box2D 
 * Quite some changes in the Box2D original code since previous time. Box2dNetGen was refactored and adjusted accordingly.
 
-> Box2D started using 3-part version labels messing up my version system where the first two parts are Box2D's version and the third is for Box2dNet changes. I will switch to another system as of Box2D v3.2.0
+> Box2D started using 3-part version labels. This messed up Box2dNet's versioning where the first two parts were Box2D's version and the third was for Box2dNet changes. I will switch to another system as of Box2D v3.2.0
 
 ## 2025/06/15: v3.1.6 for Box2D v3.1
 

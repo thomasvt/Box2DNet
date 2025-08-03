@@ -116,7 +116,7 @@ namespace Box2dNet.Interop
         public b2AABB drawingBounds;
 
         /// Option to restrict drawing to a rectangular region. May suffer from unstable depth sorting.
-        [MarshalAs(UnmanagedType.U1)] public bool useDrawingBounds;
+        //[MarshalAs(UnmanagedType.U1)] public bool useDrawingBounds;
 
         /// Option to draw shapes
         [MarshalAs(UnmanagedType.U1)] public bool drawShapes;
