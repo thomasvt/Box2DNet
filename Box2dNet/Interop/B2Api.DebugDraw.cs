@@ -114,9 +114,12 @@ namespace Box2dNet.Interop
 
         /// Bounds to use if restricting drawing to a rectangular region
         public b2AABB drawingBounds;
+        
+        /// Scale to use when drawing forces
+        public float forceScale;
 
-        /// Option to restrict drawing to a rectangular region. May suffer from unstable depth sorting.
-        //[MarshalAs(UnmanagedType.U1)] public bool useDrawingBounds;
+        /// Global scaling for joint drawing
+        public float jointScale;
 
         /// Option to draw shapes
         [MarshalAs(UnmanagedType.U1)] public bool drawShapes;
@@ -137,22 +140,22 @@ namespace Box2dNet.Interop
         [MarshalAs(UnmanagedType.U1)] public bool drawBodyNames;
 
         /// Option to draw contact points
-        [MarshalAs(UnmanagedType.U1)] public bool drawContacts;
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactPoints;
 
         /// Option to visualize the graph coloring used for contacts and joints
         [MarshalAs(UnmanagedType.U1)] public bool drawGraphColors;
 
-        /// Option to draw contact normals
-        [MarshalAs(UnmanagedType.U1)] public bool drawContactNormals;
-
-        /// Option to draw contact normal impulses
-        [MarshalAs(UnmanagedType.U1)] public bool drawContactImpulses;
-
         /// Option to draw contact feature ids
         [MarshalAs(UnmanagedType.U1)] public bool drawContactFeatures;
 
+        /// Option to draw contact normals
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactNormals;
+
+        /// Option to draw contact feature ids
+        [MarshalAs(UnmanagedType.U1)] public bool drawContactForces;
+
         /// Option to draw contact friction impulses
-        [MarshalAs(UnmanagedType.U1)] public bool drawFrictionImpulses;
+        [MarshalAs(UnmanagedType.U1)] public bool drawFrictionForces;
 
         /// Option to draw islands as bounding boxes
         [MarshalAs(UnmanagedType.U1)] public bool drawIslands;

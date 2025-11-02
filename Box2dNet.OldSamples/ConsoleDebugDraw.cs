@@ -25,12 +25,12 @@ namespace Box2dNet.OldSamples
             debugDraw.drawBounds = true;
             debugDraw.drawMass = true;
             debugDraw.drawBodyNames = true;
-            debugDraw.drawContacts = true;
+            debugDraw.drawContactPoints = true;
             debugDraw.drawGraphColors = true;
             debugDraw.drawContactNormals = true;
-            debugDraw.drawContactImpulses = true;
-            debugDraw.drawFrictionImpulses = true;
+            debugDraw.drawContactForces = true;
             debugDraw.drawContactFeatures = true;
+            debugDraw.drawFrictionForces = true;
             debugDraw.drawIslands = true;
 
             return debugDraw;

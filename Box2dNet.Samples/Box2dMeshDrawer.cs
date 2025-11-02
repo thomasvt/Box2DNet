@@ -22,7 +22,6 @@ namespace Box2dNet.Samples
             var verticesSpan = vertices.NativeArrayAsSpan<Vector2>(vertexCount);
             var p = Polygon8.FromSpan(verticesSpan);
             Mesh.PolygonEdges(p, PxWorldSize, 0, color.ToDotNet());
-
         }
 
         public void DrawSolidPolygon(b2Transform transform, IntPtr vertices, int vertexCount, float radius, b2HexColor color, IntPtr context)
@@ -90,18 +89,17 @@ namespace Box2dNet.Samples
                 DrawPoint = Marshal.GetFunctionPointerForDelegate((DrawPoint)DrawPoint),
                 DrawString = Marshal.GetFunctionPointerForDelegate((DrawString)DrawString),
                 drawingBounds = bounds,
-                // useDrawingBounds = false,
                 drawShapes = true,
                 drawJoints = true,
                 drawJointExtras = false,
                 drawBounds = false,
                 drawMass = false,
-                drawContacts = false,
+                drawContactPoints = false,
                 drawGraphColors = false,
                 drawContactNormals = false,
-                drawContactImpulses = false,
+                drawContactForces = false,
                 drawContactFeatures = false,
-                drawFrictionImpulses = false,
+                drawFrictionForces = false,
                 drawIslands = false,
                 context = meshHandle
             };

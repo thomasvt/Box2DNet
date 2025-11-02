@@ -98,7 +98,7 @@ namespace Box2dNet.Samples
             //m_context.draw.m_debugDraw.drawBounds = m_context.drawBounds;
             //m_context.draw.m_debugDraw.drawMass = m_context.drawMass;
             //m_context.draw.m_debugDraw.drawBodyNames = m_context.drawBodyNames;
-            //m_context.draw.m_debugDraw.drawContacts = m_context.drawContactPoints;
+            //m_context.draw.m_debugDraw.drawContactPoints = m_context.drawContactPoints;
             //m_context.draw.m_debugDraw.drawGraphColors = m_context.drawGraphColors;
             //m_context.draw.m_debugDraw.drawContactNormals = m_context.drawContactNormals;
             //m_context.draw.m_debugDraw.drawContactImpulses = m_context.drawContactImpulses;
