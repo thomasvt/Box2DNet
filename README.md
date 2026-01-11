@@ -196,43 +196,17 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
-## 2025/11/02: v3.1.8.6 for Box2D v3.1.1
-
-* Regenerated for latest commits on Box2D
-
-## 2025/08/03: v3.1.8.5 for Box2D v3.1.1
-
-* Regenerated for latest commits on Box2D
-* Messed up a few version numbers...
-
-## 2025/06/29: v3.1.8.2 for Box2D v3.1.1
-
-* Regenerated for latest commits on Box2D
-
-## 2025/06/22: v3.1.8 for Box2D v3.1.1
-
-* Started with the Box2D samples app rewritten in .NET + MonoGame: contains 1 sample now
-* B2DebugDraw struct bug fixed.
-
-## 2025/06/15: v3.1.7 for Box2D v3.1.1
-
-* Regenerated for updated Box2D 
-* Quite some changes in the Box2D original code since previous time. Box2dNetGen was refactored and adjusted accordingly.
+* 2026/01/11: v3.1.8.7 - Regenerated
+* 2025/11/02: v3.1.8.6 - Regenerated
+* 2025/08/03: v3.1.8.5 - Regenerated
+* 2025/06/29: v3.1.8.2 - Regenerated
+* 2025/06/22: v3.1.8 - Regenerated + 1 Box2D sample rewritten in .NET + MonoGame + B2DebugDraw struct bug fixed.
+* 2025/06/15: v3.1.7 - Regenerated + Box2dNetGen was refactored according to many changes in Box2D C code.
 
 > Box2D started using 3-part version labels. This messed up Box2dNet's versioning where the first two parts were Box2D's version and the third was for Box2dNet changes. I will switch to another system as of Box2D v3.2.0
 
-## 2025/06/15: v3.1.6 for Box2D v3.1
-
-* Small adjustment for Godot. https://github.com/thomasvt/Box2DNet/issues/2
-
-## 2025/05/06: v3.1.5 for Box2D v3.1
-
-* Added Span-based convenience properties like `b2BodyEvents.moveEventsAsSpan`.
-* Box2d API methods that take delegate pointers (IntPtr) were annoying to use as you couldn't see the actual delegate. Box2DNet now also generates an overload for these methods with the actual delegate as parameter. eg. `b2World_CastShape(b2WorldId worldId, in b2ShapeProxy proxy, Vector2 translation, b2QueryFilter filter, __b2CastResultFcn fcn__, IntPtr context)`
-
-## 2025/05/04: v3.1.4 for Box2D v3.1
-
-* Regenerated for updated Box2D
-* Started publishing `Box2dNet` as a nuget package
+* 2025/06/15: v3.1.6 - regenerated for Box2D v3.1 + https://github.com/thomasvt/Box2DNet/issues/2
+* 2025/05/06: v3.1.5 - regenerated for Box2D v3.1 + Span-based convenience properties + overloads with strongly typed delegates
+* 2025/05/04: v3.1.4 - regenerated for Box2D v3.1 + Started publishing `Box2dNet` as a nuget package
 
 ... older history not logged ...
