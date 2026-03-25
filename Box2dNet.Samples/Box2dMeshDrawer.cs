@@ -94,7 +94,7 @@ namespace Box2dNet.Samples
                 drawJointExtras = false,
                 drawBounds = false,
                 drawMass = false,
-                drawContactPoints = false,
+                contactDrawType = b2ContactDrawType.b2_drawContacts_None,
                 drawGraphColors = false,
                 drawContactNormals = false,
                 drawContactForces = false,

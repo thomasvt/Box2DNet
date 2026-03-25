@@ -30,6 +30,8 @@ namespace Box2dNetGen
             { "b2Vec2", "Vector2" }
         };
 
+        private static readonly List<string> _precompilerConstantsIgnoreList = ["B2_ENABLE_VALIDATION"];
+
         /// <summary>
         /// Logic that decides whether we generate the convenience initializer ctors (ctors with parameters to set all the struct's fields)
         /// </summary>
@@ -78,7 +80,7 @@ namespace Box2dNetGen
             var src = await ReadSourceFiles(Path.Combine(box2dFolder, "include\\box2d"));
 
             Console.WriteLine("\n\nParsing C ...");
-            var constants = ConstantsExtractor.ExtractAllPrecompilerDefines(src).ToList();
+            var constants = ConstantsExtractor.ExtractAllPrecompilerDefines(_precompilerConstantsIgnoreList, src).ToList();
             var structs = new StructsExtractor(_excludedTypes, _structFieldModifiers).ExtractAllStructs(src).ToList();
             var delegates = DelegatesExtractor.ExtractAllDelegates(src).ToList();
             var functions = ApiFunctionsExtractor.ExtractAllApiFunctions(src).ToList();

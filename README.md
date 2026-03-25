@@ -154,7 +154,7 @@ There are now two folders with samples:
 
 # Regenerating the wrapper
 
-Normally, you don't need to regenerate the wrapper yourself. I regenerate every few weeks for the latest version of Box2D. The resulting Win x64 DLLs (debug and release) are also included in this repo and in the Nuget package. 
+Normally, you don't need to regenerate the wrapper yourself. I regenerate every few weeks/months for the latest version of Box2D depending on how active the project is. The resulting Win x64 DLLs (debug and release) are also included in this repo and in the Nuget package. 
 
 But if you need to do it yourself anyway, perform these steps:
 
@@ -196,6 +196,7 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
+* 2026/03/25: v3.1.8.8 - Regenerated
 * 2026/01/11: v3.1.8.7 - Regenerated
 * 2025/11/02: v3.1.8.6 - Regenerated
 * 2025/08/03: v3.1.8.5 - Regenerated

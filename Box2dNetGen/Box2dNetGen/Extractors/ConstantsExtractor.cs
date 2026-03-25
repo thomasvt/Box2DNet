@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Box2dNetGen.Extractors
 {
@@ -9,12 +10,17 @@ namespace Box2dNetGen.Extractors
         /// <summary>
         /// Extracts all `#define` constants that are useful for Box2dNet.
         /// </summary>
-        public static IEnumerable<ApiConstant> ExtractAllPrecompilerDefines(string src)
+        public static IEnumerable<ApiConstant> ExtractAllPrecompilerDefines(List<string> ignoreList, string src)
         {
             foreach (Match match in ApiConstantRegex.Matches(src))
             {
                 var identifier = match.Groups["identifier"].Value;
-                if (identifier.Contains('(')) continue; // skip #define's of functions
+                
+                if (ignoreList.Contains(identifier)) 
+                    continue;
+                if (identifier.Contains('(')) 
+                    continue; // skip #define's of functions
+
                 var value = match.Groups["value"].Value.Trim();
                 var type = value.Contains('.') ? "float" : "int";
                 if (type == "float" && !value.EndsWith("f")) value += "f";

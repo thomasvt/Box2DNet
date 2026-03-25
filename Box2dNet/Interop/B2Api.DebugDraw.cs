@@ -121,6 +121,8 @@ namespace Box2dNet.Interop
         /// Global scaling for joint drawing
         public float jointScale;
 
+        public b2ContactDrawType contactDrawType;
+
         /// Option to draw shapes
         [MarshalAs(UnmanagedType.U1)] public bool drawShapes;
 
@@ -138,9 +140,6 @@ namespace Box2dNet.Interop
 
         /// Option to draw body names
         [MarshalAs(UnmanagedType.U1)] public bool drawBodyNames;
-
-        /// Option to draw contact points
-        [MarshalAs(UnmanagedType.U1)] public bool drawContactPoints;
 
         /// Option to visualize the graph coloring used for contacts and joints
         [MarshalAs(UnmanagedType.U1)] public bool drawGraphColors;
