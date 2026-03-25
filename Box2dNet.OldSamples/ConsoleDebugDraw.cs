@@ -25,7 +25,7 @@ namespace Box2dNet.OldSamples
             debugDraw.drawBounds = true;
             debugDraw.drawMass = true;
             debugDraw.drawBodyNames = true;
-            debugDraw.drawContactPoints = true;
+            debugDraw.contactDrawType = b2ContactDrawType.b2_drawContacts_AnchorA;
             debugDraw.drawGraphColors = true;
             debugDraw.drawContactNormals = true;
             debugDraw.drawContactForces = true;
