@@ -28,7 +28,7 @@ namespace Box2dNetGen.Generators
                     {
                         sbI.AppendLine();
                         CommentGenerator.AppendComment(sbI, field.Comment, field.Type);
-                        var clrType = typeMapper.MapType(field.Type, false, CodeDirection.NativeToClr, true, out _);
+                        var clrType = typeMapper.MapType(field.Type, false, CodeDirection.NativeToClr, true, out _, out _);
                         if (field.IsFixedArray)
                         {
                             structHasNoArrayFields = false;

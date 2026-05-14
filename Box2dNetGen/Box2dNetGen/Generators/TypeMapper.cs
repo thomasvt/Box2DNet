@@ -1,4 +1,6 @@
-﻿namespace Box2dNetGen.Generators
+﻿using System.Data;
+
+namespace Box2dNetGen.Generators
 {
     internal class TypeMapper(
         Dictionary<string, string> structTypeReplacer,
@@ -7,10 +9,21 @@
         Dictionary<string, ApiDelegate> delegates,
         HashSet<string> excludedTypes)
     {
-        /// <param name="isNotArray">Only relevant when the type is a pointer. Else ignored.</param>
-        public string MapType(in string cType, bool isNotArray, CodeDirection codeDirection, bool returnDelegateAsIntPtr, out bool isDelegate)
+        public MappedParameter MapParameter(ApiParameter p, bool isNotArray)
         {
-            isDelegate = false;
+            var typeStr = MapType(p.Type, isNotArray, CodeDirection.ClrToNative, true, out bool hasAlternativeform,
+                out bool isUnsafe);
+            return new MappedParameter(typeStr, p.Identifier, isUnsafe, hasAlternativeform,
+                p.Type == "bool" ? "[MarshalAs(UnmanagedType.U1)] " : string.Empty);
+        }
+
+        /// <param name="isNotArray">Only relevant when the type is a pointer. Else ignored.</param>
+        public string MapType(in string cType, bool isNotArray, CodeDirection codeDirection,
+            bool returnDelegateAsIntPtr, out bool hasAlternativeform, out bool isUnsafe)
+        {
+            hasAlternativeform = !isNotArray;
+            isUnsafe = false;
+
             var type = RemoveSpaces(cType);
             var isConst = false;
             if (type.StartsWith("const"))
@@ -18,7 +31,8 @@
                 isConst = true;
                 type = type[5..];
             }
-            var isPointer = type.EndsWith("*");
+
+            var isPointer = type.EndsWith('*');
             if (isPointer) type = type.TrimEnd('*');
 
             // check intrinsic types:
@@ -59,17 +73,23 @@
             // type is a enum?
             if (enums.TryGetValue(type, out var apiEnum))
             {
-                if (isPointer) throw new Exception($"Used type seems to be enum '{apiEnum.Identifier}' but it's a pointer, which is suspicious in C.");
+                if (isPointer)
+                    throw new Exception(
+                        $"Used type seems to be enum '{apiEnum.Identifier}' but it's a pointer, which is suspicious in C.");
                 return apiEnum.Identifier;
             }
 
             // type is a delegate?
             if (delegates.TryGetValue(type, out var apiDelegate))
             {
-                if (!isPointer) throw new Exception($"Used type seems to be delegate '{apiDelegate.Identifier}' but it's not a pointer, which is invalid C.");
-                isDelegate = true;
+                if (!isPointer)
+                    throw new Exception(
+                        $"Used type seems to be delegate '{apiDelegate.Identifier}' but it's not a pointer, which is invalid C.");
+                hasAlternativeform = true;
                 if (returnDelegateAsIntPtr)
                     return $"IntPtr";
+
+                isUnsafe = true;
                 return type;
             }
 
@@ -93,9 +113,11 @@
                     }
 
                     if (codeDirection == CodeDirection.NativeToClr)
-                        return "IntPtr"; // 'returning' arrays won't allocate .NET arrays. We have to accept the array as an IntPtr and loop over it. See helper method NativeArrayAsSpan in Box2dNet.
+                        return
+                            "IntPtr"; // 'returning' arrays won't allocate .NET arrays. We have to accept the array as an IntPtr and loop over it. See helper method NativeArrayAsSpan in Box2dNet.
 
-                    return $"{type}[]";
+                    isUnsafe = true;
+                    return $"{type}*";
                 }
 
                 return type;
@@ -105,12 +127,88 @@
             {
                 throw new NoGenException($"Type '{cType}' is in the 'Excluded' list.");
             }
+
             throw new NoGenException($"No known mapping for type '{cType}'.");
+        }
+
+        public IEnumerable<AltParameter> MapAlternativeTypes(ApiParameter parameter,
+            ApiParameter? capacityParameter = null)
+        {
+            var type = RemoveSpaces(parameter.Type);
+            if (type.StartsWith("const"))
+                type = type[5..];
+
+            var isPointer = type.EndsWith('*');
+            if (isPointer) type = type.TrimEnd('*');
+
+            // type is a delegate?
+            if (delegates.TryGetValue(type, out var apiDelegate))
+            {
+                if (!isPointer)
+                    throw new Exception(
+                        $"Used type seems to be delegate '{apiDelegate.Identifier}' but it's not a pointer, which is invalid C.");
+
+                yield return new([
+                    new ParamAndArg(new MappedParameter(apiDelegate.Identifier, parameter.Identifier, false),
+                        [parameter], "Marshal.GetFunctionPointerForDelegate({0})")
+                ]);
+
+                var parameterSelect = apiDelegate.Parameters.Select(x =>
+                    MapType(x.Type, true, CodeDirection.ClrToNative, true, out _, out _));
+                var returnValue = MapType(apiDelegate.ReturnType, true, CodeDirection.NativeToClr, true, out _, out _);
+                var fnPointerType = $"delegate* unmanaged[Cdecl]<{string.Join(", ", parameterSelect)}, {returnValue}>";
+
+                yield return new AltParameter([
+                    new ParamAndArg(new MappedParameter(fnPointerType, parameter.Identifier, true), [parameter], "(IntPtr){0}")
+                ]);
+
+                yield break;
+            }
+
+            // type is a struct?
+            var isReplacedByDotNetStruct = false;
+            if (structTypeReplacer.TryGetValue(type, out var dotNetStruct))
+            {
+                type = dotNetStruct;
+                isReplacedByDotNetStruct = true;
+            }
+
+            var typeIsUserStruct = structs.ContainsKey(type); // it's a struct defined by Box2D code
+            if (typeIsUserStruct || isReplacedByDotNetStruct)
+            {
+                if (isPointer)
+                {
+                    var mappedCapacityParameter =
+                        MapParameter(
+                            capacityParameter ?? throw new InvalidOperationException(
+                                "Need capacity parameter passed in when mapping alternative array types"), false);
+                    yield return new([
+                        new ParamAndArg(new MappedParameter($"{type}[]", parameter.Identifier, false),
+                            [parameter], ArgConversionFormat: null),
+                        new ParamAndArg(mappedCapacityParameter, [capacityParameter], ArgConversionFormat: null)
+                    ]);
+
+                    CallWrap wrap = new($"fixed ({type}* arrayPtr = {{0}})");
+                    yield return new AltParameter([
+                        new ParamAndArg(
+                            new MappedParameter($"Span<{type}>", parameter.Identifier, true),
+                            [parameter, capacityParameter], "arrayPtr, {0}.Length", wrap)
+                    ]);
+                    yield break;
+                }
+            }
+
+            if (excludedTypes.Contains(type))
+            {
+                throw new NoGenException($"Type '{type}' is in the 'Excluded' list.");
+            }
+
+            throw new NoGenException($"No known mapping for type '{type}'.");
         }
 
         private static string RemoveSpaces(string src)
         {
-            return new string(src.Where(ch => ch != ' ').ToArray());
+            return src.Replace(" ", string.Empty);
         }
     }
 }

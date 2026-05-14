@@ -17,7 +17,7 @@ namespace Box2dNetGen.Generators
                     var parameters = utils.GenerateParameterList(apiDelegate.Parameters, true, true, out _);
                     sb.AppendLine("  [UnmanagedFunctionPointer(CallingConvention.Cdecl)]");
                     sb.AppendLine(
-                        $"  public delegate {typeMapper.MapType(apiDelegate.ReturnType, false, CodeDirection.ClrToNative, true, out _)} {apiDelegate.Identifier}({parameters});");
+                        $"  public delegate {typeMapper.MapType(apiDelegate.ReturnType, false, CodeDirection.ClrToNative, true, out _, out _)} {apiDelegate.Identifier}({parameters});");
                     cnt++;
                 }
                 catch (NoGenException e)
