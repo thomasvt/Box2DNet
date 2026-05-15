@@ -113,10 +113,9 @@ namespace Box2dNetGen.Generators
                                     }
                                 }
 
-                                var argSelect = previousElements.SelectMany(x => x.SubParameters)
-                                    .Select(x => x.Identifier)
+                                var argSelect = previousElements.SelectMany(x => x.SubParameters).Select(IdentifierWithModifier)
                                     .Concat([altParameter.ToArgString()])
-                                    .Concat(nextElements.SelectMany(x => x.SubParameters).Select(x => x.Identifier));
+                                    .Concat(nextElements.SelectMany(x => x.SubParameters).Select(IdentifierWithModifier));
 
                                 AppendIndent(sbI, indentLevel);
                                 sbI.AppendLine(
@@ -149,7 +148,6 @@ namespace Box2dNetGen.Generators
 
             return cnt;
         }
-
         private static void AppendIndent(StringBuilder sb, int indentLevel)
         {
             const string indent = "    ";
@@ -157,6 +155,17 @@ namespace Box2dNetGen.Generators
             {
                 sb.Append(indent);
             }
+        }
+        static string IdentifierWithModifier(MappedParameter x)
+        {
+            string modifier = x.Type switch
+            {
+                _ when x.Type.StartsWith("in ") => "in ",
+                _ when x.Type.StartsWith("ref ") => "ref ",
+                _ when x.Type.StartsWith("out ") => "out ",
+                _ => string.Empty
+            };
+            return $"{modifier}{x.Identifier}";
         }
     }
 }

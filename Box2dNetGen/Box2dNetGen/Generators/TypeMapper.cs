@@ -13,6 +13,7 @@ namespace Box2dNetGen.Generators
         {
             var typeStr = MapType(p.Type, isNotArray, CodeDirection.ClrToNative, true, out bool hasAlternativeform,
                 out bool isUnsafe);
+
             return new MappedParameter(typeStr, p.Identifier, isUnsafe, hasAlternativeform,
                 p.Type == "bool" ? "[MarshalAs(UnmanagedType.U1)] " : string.Empty);
         }
@@ -159,7 +160,8 @@ namespace Box2dNetGen.Generators
                 var fnPointerType = $"delegate* unmanaged[Cdecl]<{string.Join(", ", parameterSelect)}, {returnValue}>";
 
                 yield return new AltParameter([
-                    new ParamAndArg(new MappedParameter(fnPointerType, parameter.Identifier, true), [parameter], "(IntPtr){0}")
+                    new ParamAndArg(new MappedParameter(fnPointerType, parameter.Identifier, true), [parameter],
+                        "(IntPtr){0}")
                 ]);
 
                 yield break;
