@@ -87,9 +87,9 @@ namespace Box2dNet.Interop
 public static partial class B2Api
     {
 #if DEBUG
-        private const string Box2DLibrary = ""box2dd.dll"";
+        private const string Box2DLibrary = ""box2dd"";
 #else
-        private const string Box2DLibrary = ""box2d.dll"";
+        private const string Box2DLibrary = ""box2d"";
 #endif
 ");
         }

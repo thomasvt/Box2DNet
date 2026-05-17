@@ -63,7 +63,7 @@ namespace Box2dNetGen
 
             var box2dFolder = args[0];
             var outputFile = args[1];
-            if (Directory.Exists(Path.Combine(box2dFolder, "include\\box2d")) && File.Exists(Path.Combine(box2dFolder, "README.md")))
+            if (Directory.Exists(Path.Combine(box2dFolder, "include", "box2d")) && File.Exists(Path.Combine(box2dFolder, "README.md")))
             {
                 await BuildCsWrapperAsync(box2dFolder, outputFile);
                 Console.WriteLine();
@@ -77,7 +77,7 @@ namespace Box2dNetGen
 
         private static async Task BuildCsWrapperAsync(string box2dFolder, string csFilename)
         {
-            var src = await ReadSourceFiles(Path.Combine(box2dFolder, "include\\box2d"));
+            var src = await ReadSourceFiles(Path.Combine(box2dFolder, "include", "box2d"));
 
             Console.WriteLine("\n\nParsing C ...");
             var constants = ConstantsExtractor.ExtractAllPrecompilerDefines(_precompilerConstantsIgnoreList, src).ToList();
