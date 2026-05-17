@@ -196,6 +196,7 @@ Build the now updated Box2dNet solution and use the dll in your game, or directl
 
 # History
 
+* 2026/05/17: v3.1.8.10 - Regenerated + updated for Box2D's changed parallel task API
 * 2026/03/25: v3.1.8.8 - Regenerated
 * 2026/01/11: v3.1.8.7 - Regenerated
 * 2025/11/02: v3.1.8.6 - Regenerated
