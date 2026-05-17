@@ -14,7 +14,7 @@ namespace Box2dNet.OldSamples
             debugDraw.DrawCircle = Marshal.GetFunctionPointerForDelegate((DrawCircle)DrawCircle);
             debugDraw.DrawSolidCircle = Marshal.GetFunctionPointerForDelegate((DrawSolidCircle)DrawSolidCircle);
             debugDraw.DrawSolidCapsule = Marshal.GetFunctionPointerForDelegate((DrawSolidCapsule)DrawSolidCapsule);
-            debugDraw.DrawSegment = Marshal.GetFunctionPointerForDelegate((DrawSegment)DrawSegment);
+            debugDraw.DrawLine = Marshal.GetFunctionPointerForDelegate((DrawSegment)DrawSegment);
             debugDraw.DrawTransform = Marshal.GetFunctionPointerForDelegate((DrawTransform)DrawTransform);
             debugDraw.DrawPoint = Marshal.GetFunctionPointerForDelegate((DrawPoint)DrawPoint);
             debugDraw.DrawString = Marshal.GetFunctionPointerForDelegate((DrawString)DrawString);
@@ -25,7 +25,7 @@ namespace Box2dNet.OldSamples
             debugDraw.drawBounds = true;
             debugDraw.drawMass = true;
             debugDraw.drawBodyNames = true;
-            debugDraw.contactDrawType = b2ContactDrawType.b2_drawContacts_AnchorA;
+            debugDraw.drawAnchorA = true;
             debugDraw.drawGraphColors = true;
             debugDraw.drawContactNormals = true;
             debugDraw.drawContactForces = true;
@@ -65,7 +65,7 @@ namespace Box2dNet.OldSamples
 
         private static void DrawSegment(Vector2 p1, Vector2 p2, b2HexColor color, IntPtr context)
         {
-            Console.WriteLine($"DrawSegment(p1={p1}, p2={p2}, color={color})");
+            Console.WriteLine($"DrawLine(p1={p1}, p2={p2}, color={color})");
         }
 
         private static void DrawTransform(b2Transform transform, IntPtr context)

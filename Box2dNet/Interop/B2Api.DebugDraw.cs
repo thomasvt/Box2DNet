@@ -90,9 +90,9 @@ namespace Box2dNet.Interop
 
         /// <summary>
         /// Draw a line segment.
-        /// (Original C type: DrawSegment*)
+        /// (Original C type: DrawLine*)
         /// </summary>
-        public IntPtr DrawSegment;
+        public IntPtr DrawLine;
 
         /// <summary>
         /// Draw a transform. Choose your own length scale.
@@ -121,7 +121,11 @@ namespace Box2dNet.Interop
         /// Global scaling for joint drawing
         public float jointScale;
 
-        public b2ContactDrawType contactDrawType;
+        /// Option to draw contact points
+        [MarshalAs(UnmanagedType.U1)] public bool drawContacts;
+
+        /// Draw anchor A for contact points (instead of anchorB)
+        [MarshalAs(UnmanagedType.U1)] public bool drawAnchorA;
 
         /// Option to draw shapes
         [MarshalAs(UnmanagedType.U1)] public bool drawShapes;
