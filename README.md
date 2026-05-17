@@ -172,6 +172,16 @@ Make sure you have `cmake` installed; use the .msi from https://cmake.org/downlo
 * Also clone this repo (Box2dNet) 
 * Open `Box2dNet.sln` in Visual Studio and copy the freshly built dlls and pdbs from `box2d\build\bin\Debug` and `box2d\build\bin\Release` into the Box2dNet project and ensure their Copy to Output Directory is set to *copy if newer* in the properties (alt+enter)
 
+## 2 - Rebuilding Linux .so on Windows
+
+Personally, I use Docker Desktop to build the Linux artifacts on Windows. 
+
+I use the `build-linux.cmd` for this. 
+
+Know that I do this due to requests. But I'm not a Linux user, nor have I got much time to spend on this.
+I'm willing to build these artefacts for each new version I release though, but it will be untested. If you use it and want to suggest improvements, 
+let me know.
+
 ## 2 - Regenerate the C# code
 
 The C# wrapper code can be regenerated with the companion codegen tool ```Box2dGen```, also in this repo. 
